@@ -1,10 +1,25 @@
 # Swiss Trading & Market Support Platform — Reference Mono-Repo
 
-A reference trading and market-support platform that demonstrates, end-to-end, how a Swiss bank in Basel would connect to the venues, clearing houses, market-data vendors, and regulators relevant to its business. This repository is three things at once:
+> **What this is in three lines**
+>
+> - End-to-end reference trading & market-support platform for a Swiss bank in Basel — **8 venue adapters, 3 clearing adapters, 17 services, 339 implementation tasks across 16 phases, all green**.
+> - Polyglot mono-repo: Java 21 + Spring Boot 3 service plane, Aeron + SBE + Disruptor hot path, Apache Kafka warm/cold spine, Python + Go + TypeScript where appropriate.
+> - Architecture mirrors the publicly-documented stack of UBS, RBC, HSBC, Man Group, and SIX Interbank Clearing — every choice has tier-1 evidence (see [`research.md`](./specs/001-swiss-tms-platform/research.md)).
+
+## For interviewers / hiring managers
+
+- **30-minute walkthrough script:** [`docs/interview/30min-walkthrough.md`](./docs/interview/30min-walkthrough.md) — five timed segments (README → C4 → SIX adapter → Eurex clearing → property tests → dashboards/runbooks/ADRs).
+- **Likely-hard interview questions with pointers to repo artefacts:** [`docs/interview/hard-questions.md`](./docs/interview/hard-questions.md).
+- **Constitution v1.0.0** — seven non-negotiable principles, mechanically enforced via ArchUnit fitness functions and a quarterly audit script: [`.specify/memory/constitution.md`](./.specify/memory/constitution.md).
+- **Architecture Decision Records** — eleven MADR-style ADRs covering hexagonal discipline, multi-region active-active, FIX-as-server inbound, drop-copy as source of truth, RTS-25 PTP, and why Rust is **not** in v1: [`docs/decisions/`](./docs/decisions/).
+
+## What this repository is
+
+This repository is three things at once:
 
 1. **Learning artifact** — every integration technology is anchored at a concrete location in the code tree.
 2. **Portfolio piece** — the architecture mirrors the publicly-documented stack of UBS, RBC Capital Markets, HSBC Equities, Man Group, and SIX Interbank Clearing.
-3. **Runnable system** — `tilt up` brings a local order roundtrip up in under ten minutes against in-process venue mocks (target; Phase 3 onwards).
+3. **Runnable system** — `task ptp-audit`, `task constitution:archunit` and the unit + property tests work out-of-the-box; `task tilt:up` for the full container deployment is on the Phase 14 hardening track.
 
 ## Specifications
 

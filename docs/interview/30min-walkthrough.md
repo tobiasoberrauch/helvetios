@@ -7,15 +7,19 @@ einzuhalten.
 ## Vorbereitung (vor dem Termin)
 
 ```bash
-git clone <repo>
-cd swiss-tms-platform
-gradle wrapper --gradle-version 8.10  # einmalig
-make scaffold
-tilt up   # alternativ: docker compose -f compose.dev.yaml up -d && ./gradlew :apps:oms-service:bootRun
-make smoke
+git clone <repo> && cd helvetios
+mise install                       # einmalig — JDK 21, Python 3.12, Go 1.22, Node 20
+task build                         # alle 380 Gradle-Tasks grün
+task test                          # Java + Python + Go Tests
+task constitution:archunit         # 9 ArchUnit-Fitness-Functions grün
+task ptp-audit                     # erzeugt /tmp/audit.txt + /tmp/audit.pdf
 ```
 
-`make smoke` muss **grün** durchlaufen — sonst NICHT in die Demo gehen.
+Alle vier Schritte müssen **grün** durchlaufen — sonst NICHT in die Demo gehen.
+
+> **Stand des Live-Pfads:** `task tilt:up` (alle 17 Container hochfahren) ist
+> auf der Phase-14-Hardening-Liste; bis dahin laufen die Demos in dieser
+> Reihenfolge gegen das lokal gebaute Repo, nicht gegen Container.
 
 ---
 
