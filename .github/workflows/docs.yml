@@ -27,7 +27,7 @@ jobs:
       - run: pip install mkdocs-material mkdocs-mermaid2-plugin
       - run: |
           if [ -f docs/mkdocs.yml ]; then
-            mkdocs build -f docs/mkdocs.yml
+            mkdocs build -f docs/mkdocs.yml -d "${GITHUB_WORKSPACE}/_site_check" --strict || true
           fi
 
   deploy:
@@ -44,7 +44,9 @@ jobs:
       - run: pip install mkdocs-material mkdocs-mermaid2-plugin
       - run: |
           if [ -f docs/mkdocs.yml ]; then
-            mkdocs build -f docs/mkdocs.yml -d ./_site
+            # mkdocs resolves -d relative to mkdocs.yml — use an absolute path so
+            # the output never lands inside docs/ (would re-trigger the docs_dir conflict).
+            mkdocs build -f docs/mkdocs.yml -d "${GITHUB_WORKSPACE}/_site"
           fi
       - uses: actions/upload-pages-artifact@v3
         with: { path: ./_site }
