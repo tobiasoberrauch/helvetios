@@ -7,10 +7,12 @@ on:
       - 'docs/**'
       - 'specs/**'
       - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
   pull_request:
     paths:
       - 'docs/**'
       - 'specs/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
