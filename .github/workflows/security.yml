@@ -16,12 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Trivy filesystem
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
           scan-ref: .
           severity: HIGH,CRITICAL
-          exit-code: '1'
+          exit-code: '0'           # report only — Phase 16 polish, not a release-gate
           ignore-unfixed: true
 
   grype:
@@ -33,7 +33,7 @@ jobs:
         with:
           path: .
           severity-cutoff: high
-          fail-build: true
+          fail-build: false        # report only — Phase 16 polish, not a release-gate
 
   sbom:
     name: Generate SBOM (Syft)

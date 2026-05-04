@@ -10,9 +10,8 @@ out/
 hs_err_pid*
 *.hprof
 
-# Gradle wrapper jar (regenerated locally — contributors run `gradle wrapper`)
-# Uncomment when the wrapper jar is committed:
-# !gradle/wrapper/gradle-wrapper.jar
+# Gradle wrapper jar — committed so CI + fresh clones work without `gradle wrapper` first.
+!gradle/wrapper/gradle-wrapper.jar
 
 # IDEs
 .idea/

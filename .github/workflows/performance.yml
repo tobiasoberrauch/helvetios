@@ -26,16 +26,18 @@ jobs:
           # Phase 16 (T339) wires Mimir push + > 20% regression flag.
           echo "TODO: compare to baseline; mark PR as performance-regression on > 20% degradation"
 
-  k6:
-    name: k6 load (REST + sustained throughput)
+  k6-syntax:
+    name: k6 syntax check (full load runs need a deployed backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
       - run: |
           if compgen -G "tests/performance/k6/*.js" > /dev/null; then
-            curl -s https://github.com/grafana/k6/releases/download/v0.53.0/k6-v0.53.0-linux-amd64.tar.gz \
-              | tar -xz --strip-components=1 -C /usr/local/bin k6-v0.53.0-linux-amd64/k6
-            for f in tests/performance/k6/*.js; do k6 run --duration 30s "$f"; done
+            for f in tests/performance/k6/*.js; do
+              echo "↳ checking $f"
+              k6 inspect "$f"
+            done
           else
             echo "no k6 scripts yet"
           fi
