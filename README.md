@@ -1,5 +1,8 @@
 # Swiss Trading & Market Support Platform — Reference Mono-Repo
 
+[![docs site](https://img.shields.io/badge/docs-tobiasoberrauch.github.io%2Fhelvetios-blue)](https://tobiasoberrauch.github.io/helvetios/)
+[![license](https://img.shields.io/badge/license-Apache%202.0-blue)](./LICENSE)
+
 > **What this is in three lines**
 >
 > - End-to-end reference trading & market-support platform for a Swiss bank in Basel — **8 venue adapters, 3 clearing adapters, 17 services, 339 implementation tasks across 16 phases, all green**.
