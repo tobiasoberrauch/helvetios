@@ -1,0 +1,94 @@
+# Swiss Trading & Market Support Platform — code ownership.
+#
+# Constitution Principle I (Hexagonal Adapter Discipline) is partly enforced
+# here: domain code under libs/domain-model/ MUST NOT be modified by adapter
+# owners; adapter directories under apps/venue-adapter-*/ MUST NOT be modified
+# by domain owners; the adapter ports stay narrow.
+#
+# The actual GitHub teams below are placeholders. Replace with real team
+# slugs (`@swisstms/<team>`) once the GitHub org exists.
+
+# ---------------------------------------------------------------------------
+# Default owner — every PR by default must be reviewed by the platform team.
+# ---------------------------------------------------------------------------
+*                                              @swisstms/platform
+
+# ---------------------------------------------------------------------------
+# Domain core — owned by domain team. NOT reviewable by adapter teams.
+# ---------------------------------------------------------------------------
+/libs/domain-model/                            @swisstms/domain @swisstms/architecture
+/libs/time-sync/                               @swisstms/regulatory @swisstms/platform
+/libs/audit-chain/                             @swisstms/regulatory @swisstms/platform
+/libs/pretrade-risk/                           @swisstms/risk @swisstms/platform
+
+# ---------------------------------------------------------------------------
+# Codecs and protocol libraries — owned by the codec sub-team.
+# ---------------------------------------------------------------------------
+/libs/fix-codec/                               @swisstms/codec
+/libs/fix-codec-py/                            @swisstms/codec
+/libs/sbe-codec/                               @swisstms/codec
+/libs/fixml-codec/                             @swisstms/codec
+/libs/fpml-codec/                              @swisstms/codec
+
+# ---------------------------------------------------------------------------
+# Hot-path transport — owned by the latency team.
+# ---------------------------------------------------------------------------
+/libs/aeron-transport/                         @swisstms/latency
+/apps/ems-service/                             @swisstms/latency @swisstms/platform
+/apps/pretrade-risk-gateway/                   @swisstms/latency @swisstms/risk
+/apps/inbound-fix-acceptor/                    @swisstms/latency @swisstms/codec
+
+# ---------------------------------------------------------------------------
+# Venue adapters — each has its own owners. Adapters CANNOT modify the
+# domain or other adapters.
+# ---------------------------------------------------------------------------
+/apps/venue-adapter-six/                       @swisstms/adapters-equities
+/apps/venue-adapter-eurex/                     @swisstms/adapters-derivatives
+/apps/venue-adapter-bloomberg/                 @swisstms/adapters-vendor
+/apps/venue-adapter-refinitiv/                 @swisstms/adapters-vendor
+/apps/venue-adapter-tradeweb/                  @swisstms/adapters-fi
+/apps/venue-adapter-marketaxess/               @swisstms/adapters-fi
+/apps/venue-adapter-bidfx/                     @swisstms/adapters-fx
+/apps/venue-adapter-cfets/                     @swisstms/adapters-asia
+
+# ---------------------------------------------------------------------------
+# Clearing adapters.
+# ---------------------------------------------------------------------------
+/apps/clearing-adapter-eurex/                  @swisstms/clearing
+/apps/clearing-adapter-six/                    @swisstms/clearing
+/apps/clearing-adapter-otcc/                   @swisstms/clearing
+
+# ---------------------------------------------------------------------------
+# Reporting / surveillance / entitlements / audit — regulatory team.
+# ---------------------------------------------------------------------------
+/apps/reporting-service/                       @swisstms/regulatory
+/apps/surveillance-service/                    @swisstms/regulatory @swisstms/quants
+/apps/entitlements-service/                    @swisstms/regulatory @swisstms/risk
+/apps/audit-service/                           @swisstms/regulatory @swisstms/platform
+/apps/reconciler-service/                      @swisstms/regulatory @swisstms/platform
+
+# ---------------------------------------------------------------------------
+# Front-end — UI team.
+# ---------------------------------------------------------------------------
+/apps/trader-ui/                               @swisstms/frontend
+
+# ---------------------------------------------------------------------------
+# Schemas — codec team plus contract owners. Schema-affecting PRs require
+# both reviews per Constitution Principle III.
+# ---------------------------------------------------------------------------
+/contracts/                                    @swisstms/codec @swisstms/architecture
+
+# ---------------------------------------------------------------------------
+# Constitution & specifications — architecture review board.
+# ---------------------------------------------------------------------------
+/.specify/memory/constitution.md               @swisstms/architecture-review-board
+/specs/                                        @swisstms/architecture
+/docs/decisions/                               @swisstms/architecture
+
+# ---------------------------------------------------------------------------
+# Infrastructure-as-code — platform/infra team.
+# ---------------------------------------------------------------------------
+/infra/                                        @swisstms/platform-infra
+/.github/                                      @swisstms/platform-infra
+/Tiltfile                                      @swisstms/platform-infra
+/compose.dev.yaml                              @swisstms/platform-infra

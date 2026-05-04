@@ -1,0 +1,4 @@
+image: { repository: ghcr.io/tobiasoberrauch/swisstms-entitlements-service, tag: 0.1.0 }
+service: { port: 8082 }
+env: { REDIS_HOST: redis, KAFKA_BOOTSTRAP: kafka:9092 }
+resources: { requests: { cpu: 100m, memory: 256Mi }, limits: { cpu: 500m, memory: 1Gi } }

@@ -1,0 +1,7 @@
+spring: { application: { name: pretrade-risk-gateway } }
+server: { port: 8090 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  aeron:
+    inbound-channel: aeron:ipc?endpoint=acceptor-to-risk
+    outbound-channel: aeron:ipc?endpoint=risk-to-ems

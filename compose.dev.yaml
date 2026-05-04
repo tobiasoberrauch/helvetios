@@ -1,0 +1,165 @@
+# Swiss Trading & Market Support Platform — local-dev ancillary services.
+#
+# Every service / mock that is owned by the platform code lives in `apps/`
+# or `mocks/` and is launched by Tilt against kind/k3d. The infrastructure
+# pieces below are common, off-the-shelf images. They are deliberately
+# loosely-coupled to the Tiltfile so a developer can run only the bits
+# they need with `docker compose up postgres kafka` etc.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: swisstms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: swisstms
+      POSTGRES_PASSWORD: swisstms-dev
+      POSTGRES_DB: swisstms
+    ports:
+      - "5432:5432"
+    volumes:
+      - swisstms-postgres-data:/var/lib/postgresql/data
+
+  kafka:
+    image: apache/kafka:3.7.1
+    container_name: swisstms-kafka
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      CLUSTER_ID: "swisstms-dev-cluster-0001"
+    ports:
+      - "9092:9092"
+
+  apicurio:
+    image: apicurio/apicurio-registry-mem:2.6.x
+    container_name: swisstms-apicurio
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+
+  redis:
+    image: redis:7-alpine
+    container_name: swisstms-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  questdb:
+    image: questdb/questdb:9.0.0
+    container_name: swisstms-questdb
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "8812:8812"
+      - "9009:9009"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: swisstms-clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+      - "9001:9000"
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  opensearch:
+    image: opensearchproject/opensearch:2.16.0
+    container_name: swisstms-opensearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  openbao:
+    # OpenBao = OSS fork of Vault; v2.0 pre-release as of writing.
+    image: openbao/openbao:2.0
+    container_name: swisstms-openbao
+    restart: unless-stopped
+    environment:
+      BAO_DEV_ROOT_TOKEN_ID: dev-root-token
+      BAO_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: swisstms-keycloak
+    restart: unless-stopped
+    command: ["start-dev"]
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: tilt-admin
+      KC_DB: dev-mem
+    ports:
+      - "8180:8080"
+
+  prometheus:
+    image: prom/prometheus:v2.54.0
+    container_name: swisstms-prometheus
+    restart: unless-stopped
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./ops/prometheus:/etc/prometheus:ro
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: swisstms-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: tilt-admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./ops/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+  tempo:
+    image: grafana/tempo:2.6.0
+    container_name: swisstms-tempo
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "3200:3200"
+
+  qpid-broker:
+    # Eurex Clearing AMQP 1.0 mock — Phase 6 (US4)
+    image: apache/qpid-broker-j:9.2.0
+    container_name: swisstms-qpid-broker
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "8080:8080"
+
+  fiximulator:
+    # FIXimulator-style sell-side counterpart — Phase 2 (T053)
+    # Until T053 ships a containerised FIXimulator we stub a placeholder
+    # using a quickfix sample acceptor.
+    image: alpine:3.20
+    container_name: swisstms-fiximulator
+    command: ["sh", "-c", "echo 'TODO T053 — replace with FIXimulator image' && tail -f /dev/null"]
+    ports:
+      - "9876:9876"
+
+volumes:
+  swisstms-postgres-data: {}

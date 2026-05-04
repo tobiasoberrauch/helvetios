@@ -1,0 +1,38 @@
+groups:
+  - name: swisstms-recon
+    interval: 30s
+    rules:
+      - alert: ReconciliationMismatchPersists
+        expr: |
+          sum(rate(kafka_topic_partition_current_offset{topic="warm.recon.mismatch.v1"}[5m])) > 0
+          and on() (time() - kafka_topic_partition_oldest_offset{topic="warm.recon.mismatch.v1"} > 300)
+        for: 5m
+        labels:
+          severity: sev-2
+          context: us2
+          principle: V
+        annotations:
+          summary: "Drop-copy ↔ OMS reconciliation mismatch persists > 5 minutes"
+          description: "Mismatches on warm.recon.mismatch.v1 are not draining. Check apps/reconciler-service/ logs and OMS event store."
+          runbook: "ops/runbooks/oms-recovery-from-drop-copy.md"
+
+      - alert: ReconcilerLag
+        expr: |
+          kafka_consumergroup_lag{group="swisstms-reconciler"} > 1000
+        for: 10m
+        labels:
+          severity: sev-3
+        annotations:
+          summary: "Reconciler service is behind on warm.dropcopy.* / cold.oms.event.v1"
+          runbook: "ops/runbooks/oms-recovery-from-drop-copy.md"
+
+      - alert: DropCopyStreamGap
+        expr: |
+          time() - max by () (kafka_topic_partition_max_offset_timestamp{topic=~"warm.dropcopy\\..+"}) > 60
+        for: 2m
+        labels:
+          severity: sev-2
+        annotations:
+          summary: "No drop-copy events received in the last 60s"
+          description: "Either trading is paused or the drop-copy session is broken. Check FIX session health for affected venue."
+          runbook: "ops/runbooks/oms-recovery-from-drop-copy.md"

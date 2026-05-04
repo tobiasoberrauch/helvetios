@@ -1,0 +1,13 @@
+spring: { application: { name: venue-adapter-marketaxess } }
+server: { port: 8106 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  marketaxess:
+    open-trading:
+      sender-comp-id: SWISSTMS
+      target-comp-id: MAX-OT
+    trax-apa:
+      sender-comp-id: SWISSTMS-APA
+      target-comp-id: MAX-TRAX-APA
+      daily-reset-utc: "23:00"
+      sftp-fallback-threshold-gb: 3

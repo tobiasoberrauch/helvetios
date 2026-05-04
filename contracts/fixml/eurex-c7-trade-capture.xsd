@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Eurex C7 FIXML Trade Capture Report — Stub-XSD.
+  Volle XSD aus Eurex Member Section / FIX Trading Community.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://swisstms.ch/fixml/eurex-c7"
+           targetNamespace="http://swisstms.ch/fixml/eurex-c7"
+           elementFormDefault="qualified">
+
+  <xs:element name="TrdCaptRpt">
+    <xs:complexType>
+      <xs:attribute name="TrdRptID" type="xs:string" use="required"/>
+      <xs:attribute name="TransTyp" type="xs:int" use="required"/>
+      <xs:attribute name="RptTyp"   type="xs:int" use="required"/>
+      <xs:attribute name="Sym"      type="xs:string" use="required"/>
+      <xs:attribute name="LastQty"  type="xs:decimal" use="required"/>
+      <xs:attribute name="LastPx"   type="xs:decimal" use="required"/>
+      <xs:attribute name="TrdDt"    type="xs:date" use="required"/>
+      <xs:attribute name="TxnTm"    type="xs:dateTime" use="required"/>
+      <xs:attribute name="MktID"    type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="TrdCaptRptAck">
+    <xs:complexType>
+      <xs:attribute name="TrdRptID"     type="xs:string" use="required"/>
+      <xs:attribute name="TrdRptStat"   type="xs:int"    use="required"/>
+      <xs:attribute name="RejRsn"       type="xs:int"/>
+      <xs:attribute name="Txt"          type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

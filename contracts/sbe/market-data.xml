@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                   package="ch.swisstms.sbe.marketdata"
+                   id="3" version="1" semanticVersion="1.0.0"
+                   description="Swiss-TMS Hot-Path Market Data"
+                   byteOrder="littleEndian">
+  <types>
+    <composite name="messageHeader">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="templateId"  primitiveType="uint16"/>
+      <type name="schemaId"    primitiveType="uint16"/>
+      <type name="version"     primitiveType="uint16"/>
+    </composite>
+    <composite name="groupSizeEncoding">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="numInGroup"  primitiveType="uint16"/>
+    </composite>
+    <type name="Isin" primitiveType="char" length="12" characterEncoding="ASCII"/>
+    <type name="Mic"  primitiveType="char" length="4"  characterEncoding="ASCII"/>
+    <type name="Source" primitiveType="char" length="8" characterEncoding="ASCII"/>
+    <type name="ScaledQty" primitiveType="int64"/>
+    <type name="ScaledPrice" primitiveType="int64"/>
+    <type name="EpochNanos" primitiveType="uint64"/>
+  </types>
+
+  <sbe:message name="QuoteUpdate" id="1">
+    <field name="instrumentIsin" id="1" type="Isin"/>
+    <field name="instrumentMic"  id="2" type="Mic"/>
+    <field name="bidPrice"       id="3" type="ScaledPrice"/>
+    <field name="bidQty"         id="4" type="ScaledQty"/>
+    <field name="askPrice"       id="5" type="ScaledPrice"/>
+    <field name="askQty"         id="6" type="ScaledQty"/>
+    <field name="bizTimeNanos"   id="7" type="EpochNanos"/>
+    <field name="source"         id="8" type="Source"/>
+    <field name="seqNumber"      id="9" type="uint64"/>
+  </sbe:message>
+
+  <sbe:message name="TradeUpdate" id="2">
+    <field name="instrumentIsin" id="1" type="Isin"/>
+    <field name="instrumentMic"  id="2" type="Mic"/>
+    <field name="price"          id="3" type="ScaledPrice"/>
+    <field name="quantity"       id="4" type="ScaledQty"/>
+    <field name="bizTimeNanos"   id="5" type="EpochNanos"/>
+    <field name="source"         id="6" type="Source"/>
+    <field name="seqNumber"      id="7" type="uint64"/>
+  </sbe:message>
+
+  <sbe:message name="BookSnapshot" id="3">
+    <field name="instrumentIsin" id="1" type="Isin"/>
+    <field name="instrumentMic"  id="2" type="Mic"/>
+    <group  name="bidLevels"     id="4" dimensionType="groupSizeEncoding">
+      <field name="price"      id="1" type="ScaledPrice"/>
+      <field name="qty"        id="2" type="ScaledQty"/>
+      <field name="orderCount" id="3" type="uint32"/>
+    </group>
+    <group  name="askLevels"     id="5" dimensionType="groupSizeEncoding">
+      <field name="price"      id="1" type="ScaledPrice"/>
+      <field name="qty"        id="2" type="ScaledQty"/>
+      <field name="orderCount" id="3" type="uint32"/>
+    </group>
+    <field name="bizTimeNanos"   id="6" type="EpochNanos"/>
+    <field name="source"         id="7" type="Source"/>
+    <field name="seqNumber"      id="8" type="uint64"/>
+  </sbe:message>
+</sbe:messageSchema>

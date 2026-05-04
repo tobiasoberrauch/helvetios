@@ -1,0 +1,20 @@
+# Swiss Trading & Market Support Platform — Cargo workspace.
+#
+# Members are empty in v1. Rust is reserved for hypothetical crypto-venue
+# adapters and high-performance codecs (Constitution Principle I — "Rust
+# only where it provides demonstrable benefit"). When the first such
+# member ships, list it here.
+
+[workspace]
+resolver = "2"
+members = []
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.78"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = "symbols"

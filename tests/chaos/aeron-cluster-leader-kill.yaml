@@ -1,0 +1,13 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: aeron-cluster-leader-kill
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces: [tms-prod-shadow-zh]
+    labelSelectors:
+      app.kubernetes.io/name: ems-service
+      swisstms.io/aeron-role: leader
+  duration: "30s"

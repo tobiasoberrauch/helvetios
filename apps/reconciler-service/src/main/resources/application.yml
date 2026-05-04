@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: reconciler-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    streams:
+      application-id: swisstms-reconciler
+      properties:
+        processing.guarantee: exactly_once_v2
+        commit.interval.ms: 1000
+        cache.max.bytes.buffering: 0
+    producer:
+      acks: all
+      enable.idempotence: true
+
+server:
+  port: 8086
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+
+swisstms:
+  region: ${SWISSTMS_REGION:ZH}
+  recon:
+    join-window-min: 5
+    grace-min: 1
+
+logging:
+  level:
+    root: INFO
+    ch.swisstms: DEBUG
+    org.apache.kafka: WARN

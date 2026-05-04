@@ -1,0 +1,18 @@
+# T332 — OPA Gatekeeper policies for Swiss-TMS.
+#
+# These constraint templates + constraints enforce three baseline gates:
+#   1. Every Pod ships a NetworkPolicy that scopes egress (no flat-network sprawl).
+#   2. PodSecurity admission denies privileged containers + hostNetwork.
+#   3. Every Deployment declares CPU + memory requests AND limits (no greedy pods).
+#
+# Apply with: kustomize build infra/kustomize/opa-gatekeeper | kubectl apply -f -
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - constraint-template-network-policy.yaml
+  - constraint-template-pod-security.yaml
+  - constraint-template-resource-limits.yaml
+  - constraint-network-policy-required.yaml
+  - constraint-no-privileged.yaml
+  - constraint-resource-limits-required.yaml

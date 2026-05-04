@@ -1,0 +1,43 @@
+{
+  "_comment": "T322 — FIX archive index template (7-year WORM retention).",
+  "index_patterns": ["fix-logs-*"],
+  "priority": 100,
+  "template": {
+    "settings": {
+      "number_of_shards": 6,
+      "number_of_replicas": 2,
+      "refresh_interval": "30s",
+      "index.lifecycle.name": "fix-logs-7y",
+      "index.lifecycle.rollover_alias": "fix-logs",
+      "index.codec": "best_compression",
+      "index.blocks.write": false
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "@timestamp":      { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+        "session_id":      { "type": "keyword" },
+        "sender_comp_id":  { "type": "keyword" },
+        "target_comp_id":  { "type": "keyword" },
+        "msg_type":        { "type": "keyword" },
+        "msg_seq_num":     { "type": "long" },
+        "cl_ord_id":       { "type": "keyword" },
+        "exec_id":         { "type": "keyword" },
+        "isin":            { "type": "keyword" },
+        "mic":             { "type": "keyword" },
+        "side":            { "type": "keyword" },
+        "qty":             { "type": "double" },
+        "px":              { "type": "double" },
+        "raw":             { "type": "text", "index": false },
+        "raw_sha256":      { "type": "keyword" },
+        "ingestion_region":{ "type": "keyword" },
+        "audit_chain_seq": { "type": "long" }
+      }
+    }
+  },
+  "_meta": {
+    "regulation": "MiFID II Art.16, FinfraG Art.39",
+    "retentionDays": 2557,
+    "ownerTeam": "compliance + market-support"
+  }
+}

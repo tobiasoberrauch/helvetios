@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "namespace": "ch.swisstms.events.recon.v1",
+  "name": "ReconciliationMismatch",
+  "doc": "Mismatch between OMS execution stream and drop-copy. Drop-copy wins (Constitution V).",
+  "fields": [
+    {"name": "mismatchId", "type": {"type": "string", "logicalType": "uuid"}},
+    {"name": "joinKey",    "type": "string", "doc": "(SenderCompID, ClOrdID, ExecID)"},
+    {"name": "type",       "type": {"type": "enum", "name": "MismatchType",
+        "symbols": ["DROPCOPY_ONLY","OMS_ONLY","FIELD_MISMATCH","TIME_DRIFT"]}},
+    {"name": "field",       "type": ["null", "string"], "default": null},
+    {"name": "omsValue",    "type": ["null", "string"], "default": null},
+    {"name": "dropcopyValue", "type": ["null", "string"], "default": null},
+    {"name": "detectedAtMicros", "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "venueId",     "type": "string"},
+    {"name": "severity",    "type": {"type": "enum", "name": "Severity", "symbols": ["INFO","LOW","MEDIUM","HIGH","CRITICAL"]}}
+  ]
+}

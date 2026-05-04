@@ -1,0 +1,44 @@
+{
+  "title": "Swiss-TMS — Kafka Consumer Lag (T317)",
+  "uid": "kafka-lag",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": ["kafka", "lag", "swisstms"],
+  "templating": {
+    "list": [
+      { "name": "region", "type": "query", "query": "label_values(kafka_consumergroup_lag, region)" }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Lag per consumer group (region $region)",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (consumergroup, topic) (kafka_consumergroup_lag{region=\"$region\"})",
+          "legendFormat": "{{consumergroup}} / {{topic}}",
+          "refId": "A"
+        }
+      ],
+      "alert": {
+        "name": "Kafka lag > 100k for 5m",
+        "conditions": [
+          { "type": "query", "query": { "params": ["A", "5m", "now"] }, "evaluator": { "type": "gt", "params": [100000] } }
+        ]
+      }
+    },
+    {
+      "type": "stat",
+      "title": "MirrorMaker2 lag — cross-region replication",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "max(kafka_mirror_maker_replication_latency_max_ms)",
+          "refId": "B"
+        }
+      ]
+    }
+  ]
+}

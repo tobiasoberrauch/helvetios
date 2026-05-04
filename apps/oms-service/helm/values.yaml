@@ -1,0 +1,32 @@
+image:
+  repository: ghcr.io/tobiasoberrauch/swisstms-oms-service
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+service:
+  type: ClusterIP
+  port: 8080
+
+env:
+  SPRING_PROFILES_ACTIVE: dev
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/swisstms
+  KAFKA_BOOTSTRAP: kafka:9092
+  SCHEMA_REGISTRY: http://apicurio:8080/apis/registry/v2
+  KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/swiss-tms
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+  SWISSTMS_REGION: ZH
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+
+probes:
+  liveness:
+    path: /actuator/health/liveness
+  readiness:
+    path: /actuator/health/readiness

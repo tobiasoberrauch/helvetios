@@ -1,0 +1,6 @@
+apiVersion: v2
+name: audit-service
+version: 0.1.0
+appVersion: "0.1.0"
+description: Hash-chained audit service (Constitution VI)
+type: application

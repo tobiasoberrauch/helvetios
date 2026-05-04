@@ -1,0 +1,21 @@
+{
+  "uid": "swisstms-tick-to-trade",
+  "title": "Tick-to-Trade Latency (Hot Path)",
+  "tags": ["swisstms", "us1", "us3", "phase-13"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "histogram",
+      "title": "Tick-to-Trade p99 (target: < 100µs)",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 10 },
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(swisstms_tick_to_trade_nanos_bucket[1m])))" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(swisstms_tick_to_trade_nanos_bucket[1m])))" },
+        { "expr": "histogram_quantile(0.50, sum by (le) (rate(swisstms_tick_to_trade_nanos_bucket[1m])))" }
+      ]
+    }
+  ]
+}

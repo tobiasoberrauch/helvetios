@@ -1,0 +1,10 @@
+spring:
+  application: { name: position-keeping }
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/swisstms}
+    username: ${SPRING_DATASOURCE_USERNAME:swisstms}
+    password: ${SPRING_DATASOURCE_PASSWORD:swisstms-dev}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+server: { port: 8093 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }

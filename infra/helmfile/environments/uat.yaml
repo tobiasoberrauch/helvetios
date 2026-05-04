@@ -1,0 +1,9 @@
+# AKS UAT. Standard-Footprint mit Persistenz, kein WORM.
+postgresql:
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+
+global:
+  region: uat

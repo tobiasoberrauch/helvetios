@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                   package="ch.swisstms.sbe.executions"
+                   id="2" version="1" semanticVersion="1.0.0"
+                   description="Swiss-TMS Hot-Path Executions"
+                   byteOrder="littleEndian">
+  <types>
+    <composite name="messageHeader">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="templateId"  primitiveType="uint16"/>
+      <type name="schemaId"    primitiveType="uint16"/>
+      <type name="version"     primitiveType="uint16"/>
+    </composite>
+    <type name="OrderId" primitiveType="uint64"/>
+    <type name="ExecutionId" primitiveType="uint64"/>
+    <type name="VenueExecId" primitiveType="char" length="32" characterEncoding="ASCII"/>
+    <type name="Mic" primitiveType="char" length="4" characterEncoding="ASCII"/>
+    <type name="ScaledQty" primitiveType="int64"/>
+    <type name="ScaledPrice" primitiveType="int64"/>
+    <type name="EpochNanos" primitiveType="uint64"/>
+
+    <enum name="ExecType" encodingType="uint8">
+      <validValue name="NEW">1</validValue>
+      <validValue name="PARTIAL_FILL">2</validValue>
+      <validValue name="FILL">3</validValue>
+      <validValue name="CANCELED">4</validValue>
+      <validValue name="REPLACED">5</validValue>
+      <validValue name="REJECTED">6</validValue>
+      <validValue name="TRADE_BUST">7</validValue>
+      <validValue name="EXPIRED">8</validValue>
+    </enum>
+    <enum name="LiquidityIndicator" encodingType="uint8">
+      <validValue name="ADD">1</validValue>
+      <validValue name="REMOVE">2</validValue>
+      <validValue name="CROSSED">3</validValue>
+      <validValue name="AUCTION">4</validValue>
+    </enum>
+  </types>
+
+  <sbe:message name="ExecutionReport" id="1">
+    <field name="orderIdHigh"        id="1"  type="OrderId"/>
+    <field name="orderIdLow"         id="2"  type="OrderId"/>
+    <field name="executionIdHigh"    id="3"  type="ExecutionId"/>
+    <field name="executionIdLow"     id="4"  type="ExecutionId"/>
+    <field name="venueExecutionId"   id="5"  type="VenueExecId"/>
+    <field name="execType"           id="6"  type="ExecType"/>
+    <field name="quantity"           id="7"  type="ScaledQty"/>
+    <field name="price"              id="8"  type="ScaledPrice"/>
+    <field name="cumQty"             id="9"  type="ScaledQty"/>
+    <field name="avgPx"              id="10" type="ScaledPrice"/>
+    <field name="leavesQty"          id="11" type="ScaledQty"/>
+    <field name="liquidityIndicator" id="12" type="LiquidityIndicator"/>
+    <field name="venueId"            id="13" type="Mic"/>
+    <field name="bizTimeNanos"       id="14" type="EpochNanos"/>
+    <field name="procTimeNanos"      id="15" type="EpochNanos"/>
+  </sbe:message>
+</sbe:messageSchema>

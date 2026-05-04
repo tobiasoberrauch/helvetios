@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MarketAxess Open Trading dialect (FIXT.1.1 + FIX 5.0 SP2). Stub. -->
+<fix major="5" minor="0" servicepack="2">
+  <fields>
+    <field number="22683" name="TraxRoutingHint" type="INT"/>
+  </fields>
+</fix>

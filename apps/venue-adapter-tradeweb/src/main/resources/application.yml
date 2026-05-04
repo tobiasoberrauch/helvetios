@@ -1,0 +1,11 @@
+spring: { application: { name: venue-adapter-tradeweb } }
+server: { port: 8105 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  tradeweb:
+    sender-comp-id: ${TRADEWEB_SENDER_COMP_ID:SWISSTMS}
+    target-comp-id: ${TRADEWEB_TARGET_COMP_ID:TRADEWEB}
+  aiex:
+    min-dealers: 3
+    price-tolerance-bps: 10
+    time-in-comp-sec: 30

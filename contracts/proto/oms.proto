@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package ch.swisstms.oms.v1;
+
+option java_multiple_files = true;
+option java_package = "ch.swisstms.oms.api.v1";
+option java_outer_classname = "OmsProto";
+
+import "google/protobuf/timestamp.proto";
+
+// =====================================================================
+// Service
+// =====================================================================
+service OmsService {
+  rpc SubmitOrder(SubmitOrderRequest) returns (OrderAck);
+  rpc CancelOrder(CancelOrderRequest) returns (CancelAck);
+  rpc ReplaceOrder(ReplaceOrderRequest) returns (ReplaceAck);
+  rpc StreamExecutions(StreamExecutionsRequest) returns (stream Execution);
+  rpc GetOrder(GetOrderRequest) returns (OrderDetail);
+  rpc StartAlgo(StartAlgoRequest) returns (ExecutionTask);
+}
+
+// =====================================================================
+// Enums
+// =====================================================================
+enum Side {
+  SIDE_UNSPECIFIED = 0;
+  BUY = 1;
+  SELL = 2;
+  SELL_SHORT = 3;
+}
+
+enum OrdType {
+  ORD_TYPE_UNSPECIFIED = 0;
+  MARKET = 1;
+  LIMIT = 2;
+  STOP = 3;
+  STOP_LIMIT = 4;
+  FUNARI = 5;
+  MOO = 6;
+  LOO = 7;
+}
+
+enum TimeInForce {
+  TIF_UNSPECIFIED = 0;
+  DAY = 1;
+  IOC = 2;
+  FOK = 3;
+  GTC = 4;
+  GTD = 5;
+  OPG = 6;
+}
+
+enum RoutingMode {
+  ROUTING_MODE_UNSPECIFIED = 0;
+  DMA = 1;
+  ALGO_WHEEL = 2;
+  CARE = 3;
+}
+
+enum AlgoStrategy {
+  ALGO_STRATEGY_UNSPECIFIED = 0;
+  VWAP = 1;
+  TWAP = 2;
+  POV = 3;
+  IS = 4;
+}
+
+enum OrdStatus {
+  ORD_STATUS_UNSPECIFIED = 0;
+  NEW = 1;
+  ACKNOWLEDGED = 2;
+  PARTIALLY_FILLED = 3;
+  FILLED = 4;
+  PENDING_CANCEL = 5;
+  CANCELLED = 6;
+  PENDING_REPLACE = 7;
+  REJECTED = 8;
+  EXPIRED = 9;
+  TRADE_BUSTED = 10;
+}
+
+// =====================================================================
+// Messages — submit
+// =====================================================================
+message InstrumentId {
+  string isin = 1;
+  string mic = 2;
+}
+
+message ScaledDecimal {
+  // unscaled value × 10^-scale; scale=8 by convention.
+  sint64 unscaled = 1;
+  uint32 scale = 2;
+}
+
+message SubmitOrderRequest {
+  string cl_ord_id = 1;
+  InstrumentId instrument = 2;
+  Side side = 3;
+  OrdType ord_type = 4;
+  ScaledDecimal quantity = 5;
+  optional ScaledDecimal price = 6;
+  TimeInForce time_in_force = 7;
+  optional google.protobuf.Timestamp expire_time = 8;
+  RoutingMode routing_mode = 9;
+  optional AlgoStrategy algo_strategy = 10;
+  map<string, string> algo_parameters = 11;
+  optional string preferred_venue = 12;
+}
+
+message OrderAck {
+  string order_id = 1;
+  string cl_ord_id = 2;
+  google.protobuf.Timestamp submitted_at_biz = 3;
+  OrdStatus initial_status = 4;
+}
+
+message CancelOrderRequest {
+  string order_id = 1;
+}
+
+message CancelAck {
+  string order_id = 1;
+  bool accepted = 2;
+  optional string reject_reason = 3;
+}
+
+message ReplaceOrderRequest {
+  string order_id = 1;
+  optional ScaledDecimal new_quantity = 2;
+  optional ScaledDecimal new_price = 3;
+}
+
+message ReplaceAck {
+  string order_id = 1;
+  bool accepted = 2;
+  optional string reject_reason = 3;
+}
+
+message StreamExecutionsRequest {
+  optional string client_id = 1;
+  optional google.protobuf.Timestamp from = 2;
+}
+
+message Execution {
+  string execution_id = 1;
+  string order_id = 2;
+  string venue_id = 3;
+  ScaledDecimal quantity = 4;
+  ScaledDecimal price = 5;
+  google.protobuf.Timestamp biz_time = 6;
+}
+
+message GetOrderRequest {
+  string order_id = 1;
+}
+
+message OrderDetail {
+  string order_id = 1;
+  string cl_ord_id = 2;
+  OrdStatus status = 3;
+  ScaledDecimal cum_qty = 4;
+  ScaledDecimal leaves_qty = 5;
+  optional ScaledDecimal avg_px = 6;
+  google.protobuf.Timestamp last_updated = 7;
+  repeated Execution executions = 8;
+}
+
+message StartAlgoRequest {
+  string parent_order_id = 1;
+  AlgoStrategy strategy = 2;
+  map<string, string> parameters = 3;
+}
+
+message ExecutionTask {
+  string execution_task_id = 1;
+  string parent_order_id = 2;
+  AlgoStrategy strategy = 3;
+  google.protobuf.Timestamp start_time = 4;
+}

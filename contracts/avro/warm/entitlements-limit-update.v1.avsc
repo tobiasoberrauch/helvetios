@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "namespace": "ch.swisstms.events.entitlements.v1",
+  "name": "EntitlementsLimitUpdate",
+  "doc": "Incremental update to per-client risk profile + entitlements; consumed by pretrade-risk-gateway and inbound-fix-acceptor.",
+  "fields": [
+    {"name": "clientId",    "type": "string"},
+    {"name": "version",     "type": "long", "doc": "Monotonically increasing for cache invalidation"},
+    {"name": "fatFingerNotional",   "type": ["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 2}], "default": null},
+    {"name": "fatFingerQuantity",   "type": ["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}], "default": null},
+    {"name": "maxOrderSizeNotional","type": ["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 2}], "default": null},
+    {"name": "ordersPerSecondLimit","type": ["null", "int"], "default": null},
+    {"name": "inFlightOrdersLimit", "type": ["null", "int"], "default": null},
+    {"name": "notionalDailyLimits", "type": {"type": "map", "values": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 2}},
+        "doc": "Per asset class (EQUITY/LISTED_DERIVATIVE/FIXED_INCOME/FX/CRYPTO)"},
+    {"name": "restrictedInstruments", "type": {"type": "array", "items": "string"}, "default": []},
+    {"name": "killSwitchTripped",   "type": "boolean", "default": false},
+    {"name": "updateTimeMicros",    "type": {"type": "long", "logicalType": "timestamp-micros"}}
+  ]
+}

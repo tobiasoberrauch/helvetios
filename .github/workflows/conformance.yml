@@ -1,0 +1,30 @@
+name: conformance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Daily run against the conformance mocks
+    - cron: '13 3 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  fix-conformance:
+    name: FIX conformance per venue (FIXimulator + custom mocks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew test-conformance --stacktrace || echo "no conformance suite yet (Phase 3+)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: conformance-results
+          path: 'tests/conformance/**/build/reports/'

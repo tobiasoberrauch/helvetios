@@ -1,0 +1,12 @@
+# Local-dev (kind/k3d via Tilt). Minimaler Footprint.
+postgresql:
+  auth:
+    username: swisstms
+    password: swisstms-dev
+    database: swisstms
+  primary:
+    persistence:
+      enabled: false  # ephemeral in dev
+
+global:
+  region: dev

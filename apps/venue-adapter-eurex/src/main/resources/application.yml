@@ -1,0 +1,8 @@
+spring: { application: { name: venue-adapter-eurex } }
+server: { port: 8102 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  eurex:
+    eti:
+      gateway-host: ${EUREX_T7_HOST:t7.eurex.com}
+      gateway-port: ${EUREX_T7_PORT:9000}

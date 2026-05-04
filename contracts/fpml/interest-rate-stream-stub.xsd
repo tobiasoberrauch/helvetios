@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Stub FpML 5.12 InterestRateStream XSD. Volle XSD wird via
+  `make scaffold` aus fpml.org bezogen.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://www.fpml.org/FpML-5/recordkeeping"
+           targetNamespace="http://www.fpml.org/FpML-5/recordkeeping"
+           elementFormDefault="qualified"
+           version="5-12">
+
+  <xs:element name="interestRateStream">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="payerPartyReference" type="xs:string"/>
+        <xs:element name="receiverPartyReference" type="xs:string"/>
+        <xs:element name="effectiveDate" type="xs:date"/>
+        <xs:element name="terminationDate" type="xs:date"/>
+        <xs:element name="notional" type="xs:decimal"/>
+        <xs:element name="currency" type="xs:string"/>
+        <xs:element name="fixedRate" type="xs:decimal" minOccurs="0"/>
+        <xs:element name="floatingRateIndex" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

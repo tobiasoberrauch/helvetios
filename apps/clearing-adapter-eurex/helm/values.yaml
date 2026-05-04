@@ -1,0 +1,12 @@
+image:
+  repository: ghcr.io/tobiasoberrauch/swisstms-clearing-adapter-eurex
+  tag: 0.1.0
+replicaCount: 1
+service:
+  port: 8088
+env:
+  EUREX_AMQP_URL: amqp://qpid-broker:5672
+  EUREX_TRUSTSTORE_PATH: /etc/swisstms/keystores/eurex-truststore.jks
+resources:
+  requests: { cpu: 200m, memory: 512Mi }
+  limits:   { cpu: 1000m, memory: 1Gi }

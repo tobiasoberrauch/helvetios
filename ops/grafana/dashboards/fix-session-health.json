@@ -1,0 +1,28 @@
+{
+  "uid": "swisstms-fix-session-health",
+  "title": "FIX Session Health (per venue)",
+  "tags": ["swisstms"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Connected Sessions",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 },
+      "targets": [
+        { "expr": "sum by (venue_mic) (swisstms_venue_session_status)" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Gap Fills / minute",
+      "gridPos": { "x": 8, "y": 0, "w": 16, "h": 6 },
+      "targets": [
+        { "expr": "rate(fix_session_gap_fills_total[1m])", "legendFormat": "{{venue_mic}}" }
+      ]
+    }
+  ]
+}

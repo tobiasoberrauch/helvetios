@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  T292 — Eurex T7 ETI binary protocol (subset).
+
+  Eurex publishes the full ETI dictionary as a C-header / XSD bundle. This file is the
+  swisstms-internal SBE rendition covering the messages we actually generate / parse:
+
+    NewOrderSingle (10100), NewOrderResponse (10101), ExecutionReport (10110),
+    OrderCancelRequest (10120), OrderCancelReplaceRequest (10125), Logon (10000),
+    Logout (10005), HeartBeat (10011).
+
+  Full coverage is added in Phase 16. The blockLength + templateId are pinned to match the Eurex
+  release-2026.1 message set.
+-->
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                   package="ch.swisstms.venue.eurex.eti.sbe"
+                   id="11"
+                   version="0"
+                   semanticVersion="EUREX-T7-ETI-2026.1"
+                   description="Eurex T7 ETI subset for swisstms"
+                   byteOrder="littleEndian">
+
+  <types>
+    <composite name="messageHeader">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="templateId" primitiveType="uint16"/>
+      <type name="schemaId" primitiveType="uint16"/>
+      <type name="version" primitiveType="uint16"/>
+      <type name="bodyLen" primitiveType="uint32"/>
+    </composite>
+    <type name="ApplBeginSeqNum" primitiveType="uint64"/>
+    <type name="OrderQty" primitiveType="uint64" semanticType="Qty"/>
+    <type name="Price" primitiveType="int64" semanticType="Price"/>
+    <enum name="SideCode" encodingType="uint8">
+      <validValue name="BUY">1</validValue>
+      <validValue name="SELL">2</validValue>
+    </enum>
+    <enum name="OrdTypeCode" encodingType="uint8">
+      <validValue name="MARKET">1</validValue>
+      <validValue name="LIMIT">2</validValue>
+      <validValue name="STOP">3</validValue>
+      <validValue name="STOP_LIMIT">4</validValue>
+    </enum>
+  </types>
+
+  <sbe:message name="NewOrderSingle" id="10100" blockLength="80" semanticType="D">
+    <field name="senderCompId" id="49"  type="uint64"/>
+    <field name="targetCompId" id="56"  type="uint64"/>
+    <field name="securityId"   id="48"  type="uint64"/>
+    <field name="orderQty"     id="38"  type="OrderQty"/>
+    <field name="price"        id="44"  type="Price"/>
+    <field name="side"         id="54"  type="SideCode"/>
+    <field name="ordType"      id="40"  type="OrdTypeCode"/>
+    <field name="execTimestamp" id="60" type="uint64"/>
+  </sbe:message>
+
+  <sbe:message name="ExecutionReport" id="10110" blockLength="64" semanticType="8">
+    <field name="orderId"       id="37"  type="uint64"/>
+    <field name="execId"        id="17"  type="uint64"/>
+    <field name="lastQty"       id="32"  type="OrderQty"/>
+    <field name="lastPx"        id="31"  type="Price"/>
+    <field name="cumQty"        id="14"  type="OrderQty"/>
+    <field name="leavesQty"     id="151" type="OrderQty"/>
+    <field name="execTimestamp" id="60"  type="uint64"/>
+  </sbe:message>
+
+  <sbe:message name="OrderCancelRequest" id="10120" blockLength="32" semanticType="F">
+    <field name="orderId"       id="37"  type="uint64"/>
+    <field name="execTimestamp" id="60"  type="uint64"/>
+  </sbe:message>
+</sbe:messageSchema>

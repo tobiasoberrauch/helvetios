@@ -1,0 +1,10 @@
+spring: { application: { name: ems-service } }
+server: { port: 9100 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  region: ${SWISSTMS_REGION:ZH}
+  aeron:
+    cluster:
+      members: ${AERON_CLUSTER_MEMBERS:0,localhost:9100,localhost:9101,localhost:9102,localhost:9103,localhost:9104}
+  chronicle-queue:
+    path: ${CHRONICLE_QUEUE_PATH:/var/lib/swisstms/ems-journal}

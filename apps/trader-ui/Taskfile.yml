@@ -1,0 +1,33 @@
+version: '3'
+
+tasks:
+  install:
+    desc: "npm install"
+    cmds:
+      - npm install --no-fund --no-audit
+    sources:
+      - package.json
+      - package-lock.json
+
+  dev:
+    desc: "Vite dev-server auf http://localhost:5173"
+    deps: [install]
+    cmds:
+      - npm run dev -- --host
+
+  build:
+    desc: "Production-Build"
+    deps: [install]
+    cmds:
+      - npm run build
+
+  test:
+    desc: "Vitest"
+    deps: [install]
+    cmds:
+      - npm test
+
+  lint:
+    deps: [install]
+    cmds:
+      - npm run lint

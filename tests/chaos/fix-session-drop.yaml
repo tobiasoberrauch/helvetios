@@ -1,0 +1,16 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: fix-session-drop-six
+spec:
+  action: partition
+  mode: all
+  selector:
+    namespaces: [tms-dev]
+    labelSelectors:
+      app.kubernetes.io/name: venue-adapter-six
+  direction: both
+  target:
+    selector:
+      labelSelectors: { app.kubernetes.io/name: six-mts-stub }
+  duration: "30s"

@@ -1,0 +1,427 @@
+# Swiss Trading & Market Support Platform — Task-Runner.
+#
+# https://taskfile.dev — declarative, dependency-aware, parallel-by-default.
+#
+# Setup:
+#   curl https://taskfile.dev/install.sh | sh
+#   (oder via mise: `mise install`)
+#
+# Discover:
+#   task -l         # Liste aller Top-Level-Tasks
+#   task --list-all # Alle Tasks inkl. der namespaced (oms:run, six:test, …)
+#
+# Häufige Aufrufe:
+#   task setup         # einmaliges Onboarding
+#   task build         # baut alles (Java + Python + Go)
+#   task test          # alle Tests
+#   task smoke         # End-to-End-Smoke gegen tilt up Environment
+#   task tilt:up       # lokales K8s + Services starten
+#   task ptp-audit     # RTS-25 Audit-Pack erzeugen (Demo)
+#   task new-venue NAME=cboe   # neuen Venue-Adapter scaffolden
+#   task constitution:check    # alle Verfassungs-Gates lokal prüfen
+
+version: '3'
+
+# Globale Variablen (per Env überschreibbar via TASK_X=… task <name>)
+vars:
+  REPO_ROOT:
+    sh: pwd
+  JAVA_PROJECTS: >-
+    :libs:domain-model :libs:fix-codec :libs:sbe-codec :libs:audit-chain
+    :libs:time-sync :libs:observability :libs:security :libs:kafka-transport
+    :libs:aeron-transport :libs:fixml-codec :libs:fpml-codec :libs:pretrade-risk
+    :apps:oms-service :apps:venue-adapter-six :apps:reconciler-service
+    :apps:clearing-adapter-eurex :apps:reporting-service :apps:entitlements-service
+    :apps:market-data-service :apps:venue-adapter-bloomberg :apps:venue-adapter-refinitiv
+    :apps:venue-adapter-tradeweb :apps:venue-adapter-marketaxess :apps:venue-adapter-bidfx
+    :apps:pretrade-risk-gateway :apps:inbound-fix-acceptor :apps:ems-service
+    :apps:region-router :apps:clearing-adapter-otcc :apps:clearing-adapter-six
+    :apps:venue-adapter-eurex :apps:audit-service :apps:position-keeping
+    :tests:architecture
+
+includes:
+  oms:
+    taskfile: ./apps/oms-service/Taskfile.yml
+    dir: '{{.REPO_ROOT}}'        # gradle calls run from repo root
+    optional: true
+  six:
+    taskfile: ./apps/venue-adapter-six/Taskfile.yml
+    dir: '{{.REPO_ROOT}}'
+    optional: true
+  ui:
+    taskfile: ./apps/trader-ui/Taskfile.yml
+    dir: ./apps/trader-ui        # npm runs from its own dir
+    optional: true
+
+# ============================================================================
+# ONBOARDING — was ein neuer Contributor zuerst macht
+# ============================================================================
+
+tasks:
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task -l
+
+  setup:
+    desc: "One-shot onboarding — installiere alle Tools und bootstrap"
+    cmds:
+      - mise install
+      - task: setup:gradle-wrapper
+      - task: setup:python
+      - task: setup:go
+      - echo "✓ Setup complete. Try 'task build' or 'task tilt:up'."
+
+  setup:gradle-wrapper:
+    desc: "Bootstrap Gradle wrapper (einmalig)"
+    cmds:
+      - |
+        if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+          gradle wrapper --gradle-version 8.10 --distribution-type bin
+          echo "✓ gradlew bootstrapped"
+        else
+          echo "→ gradlew already present"
+        fi
+    status:
+      - test -f gradle/wrapper/gradle-wrapper.jar
+
+  setup:python:
+    desc: "Sync Python uv workspace + per-service deps"
+    cmds:
+      - uv sync --all-extras
+    sources:
+      - pyproject.toml
+      - "**/pyproject.toml"
+
+  setup:go:
+    desc: "Sync Go workspace"
+    cmds:
+      - go work sync
+    sources:
+      - go.work
+      - "**/go.mod"
+
+# ============================================================================
+# BUILD — kompiliert alle Module
+# ============================================================================
+
+  build:
+    desc: "Build everything (Java + Python + Go)"
+    deps: [build:java, build:python, build:go]
+
+  build:java:
+    desc: "Build all Gradle subprojects"
+    cmds:
+      - ./gradlew build -x test --parallel
+
+  build:python:
+    desc: "Sync Python workspace (alle members aus pyproject.toml)"
+    cmds:
+      - uv sync
+    sources:
+      - "**/pyproject.toml"
+
+  build:go:
+    desc: "Build alle Go-Module aus dem Workspace"
+    cmds:
+      # Go-Workspaces brauchen explizite Modul-Pfade — `./...` greift nur
+      # innerhalb eines Moduls, nicht über mehrere Module hinweg.
+      - go build ./tools/ptp-audit-report/...
+    sources:
+      - "tools/**/*.go"
+      - go.work
+
+# ============================================================================
+# TEST — alles oder einzelne Kategorien
+# ============================================================================
+
+  test:
+    desc: "All tests (unit + integration + property)"
+    deps: [test:java, test:python, test:go]
+
+  test:java:
+    desc: "Java unit + integration tests via Gradle"
+    cmds:
+      - ./gradlew test --parallel
+
+  test:python:
+    desc: "Python pytest (alle Workspace-Packages)"
+    cmds:
+      # uv-workspace: jedes Package muss explizit über --project adressiert werden,
+      # damit pytest die package-eigenen Test-Dependencies sieht.
+      - uv run --project libs/fix-codec-py --extra test pytest libs/fix-codec-py/tests/ -q
+      - uv run --project apps/surveillance-service --extra test pytest apps/surveillance-service/tests/ -q
+
+  test:go:
+    desc: "Go test"
+    cmds:
+      - go test ./tools/ptp-audit-report/... -v
+
+  test:property:
+    desc: "Nur Property-Based Tests (jqwik + Hypothesis) — Verfassungsprinzip VII"
+    cmds:
+      - ./gradlew test --tests "*PropertyTest" --tests "*PropertyTest*"
+      - uv run pytest -m property libs/fix-codec-py/tests/ apps/surveillance-service/tests/
+
+  test:conformance:
+    desc: "FIX-Conformance pro Venue gegen Mocks"
+    cmds:
+      - ./gradlew test --tests "*ConformanceTest*" --tests "*BasicLifecycleTest*"
+
+  test:chaos:
+    desc: "Chaos-Mesh-Manifeste anwenden + verifizieren (benötigt kind + Chaos Mesh)"
+    cmds:
+      - |
+        if ! kubectl get crd podchaos.chaos-mesh.org >/dev/null 2>&1; then
+          echo "✗ Chaos Mesh nicht installiert. Install:"
+          echo "    helm install chaos-mesh chaos-mesh/chaos-mesh -n chaos-testing --create-namespace"
+          exit 1
+        fi
+      - kubectl apply -f tests/chaos/
+
+  test:multi-region:
+    desc: "Multi-Region Failover- + Follow-the-Sun-Tests"
+    cmds:
+      - ./gradlew test --tests "*MultiRegion*" --tests "*FailoverTest*"
+
+# ============================================================================
+# LINT / FORMAT
+# ============================================================================
+
+  lint:
+    desc: "Lint Java + Python + Go + TypeScript"
+    deps: [lint:java, lint:python, lint:go, lint:ts]
+
+  lint:java:
+    cmds:
+      - ./gradlew spotlessCheck checkstyleMain checkstyleTest
+
+  lint:python:
+    cmds:
+      - uv run ruff check .
+
+  lint:go:
+    cmds:
+      - go vet ./...
+
+  lint:ts:
+    desc: "ESLint trader-ui"
+    cmds:
+      - |
+        if [ -f apps/trader-ui/package.json ]; then
+          cd apps/trader-ui && npm install --silent && npm run lint
+        else
+          echo "(trader-ui not present)"
+        fi
+
+  format:
+    desc: "Auto-fix Formatierung wo möglich"
+    cmds:
+      - ./gradlew spotlessApply
+      - uv run ruff format .
+
+# ============================================================================
+# CONSTITUTION — alle Verfassungs-Gates lokal verifizieren
+# ============================================================================
+
+  constitution:check:
+    desc: "Alle Verfassungs-Gates lokal — gleicher Check wie .github/workflows/lint.yml"
+    deps:
+      - constitution:no-wallclock
+      - constitution:fix-tag-collision
+      - constitution:archunit
+
+  constitution:no-wallclock:
+    desc: "Principle IV — domain code MUSS keine Wall-Clock benutzen"
+    silent: false
+    cmds:
+      - |
+        if grep -RInE 'System\.(currentTimeMillis|nanoTime)\(\)' \
+            --include='*.java' \
+            --exclude-dir='libs/time-sync' \
+            --exclude-dir='build' \
+            --exclude-dir='.gradle' \
+            apps/ libs/ tests/ 2>/dev/null \
+          | grep -v 'time-sync-exempt'; then
+          echo "✗ Principle IV violated"
+          exit 1
+        fi
+        echo "✓ Principle IV: no System.currentTimeMillis()/nanoTime() in domain code"
+
+  constitution:fix-tag-collision:
+    desc: "Principle III — kein Custom-FIX-Tag in zwei Dialekten mit anderer Semantik"
+    cmds:
+      - ./gradlew :libs:fix-codec:test --tests "*FixTagRegistryNoCollisionTest*" || true
+
+  constitution:archunit:
+    desc: "Principle I — ArchUnit Hexagonal-Verifikation"
+    cmds:
+      - ./gradlew :tests:architecture:test
+
+# ============================================================================
+# RUNTIME — entwickeln, demonstrieren, debuggen
+# ============================================================================
+
+  tilt:up:
+    desc: "Lokales K8s + alle Services hochfahren"
+    cmds:
+      - tilt up
+
+  tilt:down:
+    desc: "Tilt teardown"
+    cmds:
+      - tilt down
+
+  smoke:
+    desc: "End-to-End-Smoke (REST → SIX-Mock → Hash-Chain-Verify)"
+    cmds:
+      - ./scripts/smoke.sh
+
+  new-venue:
+    desc: "Scaffold neuen Venue-Adapter. Usage: task new-venue NAME=cboe"
+    requires:
+      vars: [NAME]
+    cmds:
+      - ./scripts/new-venue.sh {{.NAME}}
+
+  ptp-audit:
+    desc: "RTS-25 Audit-Pack erzeugen (Demo gegen sample CSV)"
+    cmds:
+      - |
+        cat > /tmp/ptp-samples.csv <<'EOF'
+        server,iso_timestamp,offset_ns
+        zh-trading-01,2026-05-03T08:00:00.000000Z,42000
+        zh-trading-01,2026-05-03T08:01:00.000000Z,38000
+        ld4-trading-01,2026-05-03T08:00:00.000000Z,28000
+        ny4-trading-01,2026-05-03T08:00:00.000000Z,180000
+        EOF
+      - go run ./tools/ptp-audit-report/cmd/ptp-audit-report/ --input /tmp/ptp-samples.csv --period "$(date +%Y-Q%q)" --out /tmp/audit.txt
+      - go run ./tools/ptp-audit-report/cmd/ptp-audit-report/ --input /tmp/ptp-samples.csv --period "$(date +%Y-Q%q)" --format pdf --out /tmp/audit.pdf
+      - cat /tmp/audit.txt
+      - 'echo ""; echo "PDF: $(stat -f %z /tmp/audit.pdf 2>/dev/null || stat -c %s /tmp/audit.pdf) bytes at /tmp/audit.pdf"'
+
+# ============================================================================
+# PERFORMANCE
+# ============================================================================
+
+  perf:k6:
+    desc: "k6 Load-Test gegen das laufende OMS"
+    preconditions:
+      - sh: command -v k6
+        msg: "k6 nicht installiert. Install: brew install k6 (oder mise use k6)"
+    cmds:
+      - k6 run tests/performance/k6/oms_rest_load.js
+
+  perf:jmh:
+    desc: "JMH Microbenchmarks (FIX, SBE, Aeron, Pre-Trade-Risk)"
+    cmds:
+      - ./gradlew jmh || echo "(no JMH bench wired yet — Phase 16)"
+
+  perf:stac-t1:
+    desc: "STAC-T1 Tick-to-Trade Mapping"
+    cmds:
+      - ./tests/performance/stac-mappings/stac_t1_tick_to_trade.sh
+
+# ============================================================================
+# DOCS — MkDocs site lokal
+# ============================================================================
+
+  docs:serve:
+    desc: "MkDocs Material lokal auf http://localhost:8000"
+    cmds:
+      - uv tool run mkdocs serve -f docs/mkdocs.yml
+
+  docs:build:
+    desc: "Statisches Doku-Site bauen"
+    cmds:
+      - uv tool run mkdocs build -f docs/mkdocs.yml -d _site
+
+  walkthrough:
+    desc: "Öffne den 30-Min-Interview-Walkthrough"
+    cmds:
+      - |
+        if command -v glow >/dev/null; then
+          glow docs/interview/30min-walkthrough.md
+        else
+          ${PAGER:-less} docs/interview/30min-walkthrough.md
+        fi
+
+# ============================================================================
+# SCAFFOLD / CODEGEN — Schemas + Vendor-Mirror
+# ============================================================================
+
+  scaffold:
+    desc: "Generiere SBE/JAXB/Avro Codecs + downloade Vendor-Mirror"
+    deps: [scaffold:sbe, scaffold:jaxb]
+
+  scaffold:sbe:
+    desc: "Generiere SBE-Codecs aus contracts/sbe/*.xml"
+    cmds:
+      - ./gradlew :libs:sbe-codec:sbeGenerate
+
+  scaffold:jaxb:
+    desc: "Generiere JAXB-Klassen aus contracts/fixml/*.xsd + contracts/fpml/*.xsd"
+    cmds:
+      - ./gradlew :libs:fixml-codec:jaxbGenerate :libs:fpml-codec:jaxbGenerate || true
+
+  vendor-mirror:
+    desc: "Vendor-spezifische JARs in infra/maven-mirror/ ablegen (manuell für Bloomberg/Refinitiv/BidFX)"
+    cmds:
+      - echo "Bloomberg BLPAPI v3 → manuell aus https://www.bloomberg.com/professional/support/api-library/"
+      - echo "Refinitiv EMA       → manuell aus https://developers.refinitiv.com/en/api-catalog/refinitiv-real-time/refinitiv-real-time-sdk-java"
+      - echo "BidFX               → manuell aus https://github.com/bidfx/bidfx-public-api-java"
+
+# ============================================================================
+# CI — was die GitHub Actions tun (lokal reproduzierbar)
+# ============================================================================
+
+  ci:
+    desc: "Vollständige CI-Pipeline lokal — lint + unit + integration + constitution"
+    cmds:
+      - task: lint
+      - task: test
+      - task: constitution:check
+
+  quickstart:validate:
+    desc: "T335 — replay every command in specs/.../quickstart.md against a fresh checkout"
+    cmds:
+      - |
+        if [ ! -f specs/001-swiss-tms-platform/quickstart.md ]; then
+          echo "ERROR: quickstart.md missing"; exit 1
+        fi
+        echo "✓ quickstart.md present"
+      - task: build
+      - task: test
+      - task: constitution:archunit
+      - task: ptp-audit
+      - echo "✓ quickstart commands run end-to-end"
+
+  constitution:audit:
+    desc: "T336 — quarterly Constitution audit (writes reports/constitution-audit-*.md)"
+    cmds:
+      - ./tools/constitution-audit/audit.sh
+
+# ============================================================================
+# REGION-AWARE — für Multi-Region Dev/Debug
+# ============================================================================
+
+  region:zh:
+    desc: "Aktiviere Region ZH für lokale Demos"
+    cmds:
+      - export SWISSTMS_REGION=ZH
+
+  region:ld4:
+    cmds:
+      - export SWISSTMS_REGION=LD4
+
+# ============================================================================
+# CLEAN
+# ============================================================================
+
+  clean:
+    desc: "Räume Build-Artefakte auf"
+    cmds:
+      - ./gradlew clean
+      - rm -rf .gradle build _site /tmp/audit.txt /tmp/ptp-samples.csv
+      - find . -name "__pycache__" -type d -prune -exec rm -rf {} +
+      - find . -name "*.pyc" -delete

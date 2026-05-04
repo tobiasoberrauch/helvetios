@@ -1,0 +1,6 @@
+apiVersion: v2
+name: linkerd-swisstms
+description: Linkerd 2.16 + SPIFFE/SPIRE workload-identity for Swiss-TMS.
+type: application
+version: 0.1.0
+appVersion: "2.16.0"

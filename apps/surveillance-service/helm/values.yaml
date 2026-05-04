@@ -1,0 +1,6 @@
+image: { repository: ghcr.io/tobiasoberrauch/swisstms-surveillance-service, tag: 0.1.0 }
+service: { port: 8084 }
+env:
+  KAFKA_BOOTSTRAP: kafka:9092
+  OPENSEARCH_HOST: opensearch
+resources: { requests: { cpu: 1000m, memory: 2Gi }, limits: { cpu: 4000m, memory: 8Gi } }

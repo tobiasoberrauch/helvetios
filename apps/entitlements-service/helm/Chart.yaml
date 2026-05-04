@@ -1,0 +1,6 @@
+apiVersion: v2
+name: entitlements-service
+description: Swiss-TMS entitlements + kill-switch (US6)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

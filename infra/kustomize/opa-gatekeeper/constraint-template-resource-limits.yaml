@@ -1,0 +1,37 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: swisstmsresourcelimits
+spec:
+  crd:
+    spec:
+      names:
+        kind: SwissTmsResourceLimits
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package swisstms.resourcelimits
+
+        violation[{"msg": msg}] {
+          c := input.review.object.spec.containers[_]
+          not c.resources.requests.cpu
+          msg := sprintf("container %q missing resources.requests.cpu", [c.name])
+        }
+
+        violation[{"msg": msg}] {
+          c := input.review.object.spec.containers[_]
+          not c.resources.requests.memory
+          msg := sprintf("container %q missing resources.requests.memory", [c.name])
+        }
+
+        violation[{"msg": msg}] {
+          c := input.review.object.spec.containers[_]
+          not c.resources.limits.cpu
+          msg := sprintf("container %q missing resources.limits.cpu", [c.name])
+        }
+
+        violation[{"msg": msg}] {
+          c := input.review.object.spec.containers[_]
+          not c.resources.limits.memory
+          msg := sprintf("container %q missing resources.limits.memory", [c.name])
+        }

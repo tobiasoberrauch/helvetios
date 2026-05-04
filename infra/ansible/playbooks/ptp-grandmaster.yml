@@ -1,0 +1,30 @@
+---
+# Phase 14 — Provisions a Meinberg LANTIME M3000 PTP grandmaster per
+# region. The hardware lives in the trading-floor cabinet; this playbook
+# configures the boundary clocks and the GPS-disciplined upstream sync.
+- name: Configure PTP grandmaster (Meinberg LANTIME M3000)
+  hosts: ptp_grandmasters
+  become: true
+  vars:
+    ptp_domain: 0
+    sync_announce_interval: 0  # 1/sec
+    sync_interval: -3          # 8/sec
+  tasks:
+    - name: Verify GPS antenna lock
+      command: ntpq -p
+      register: ntp_status
+
+    - name: Fail if GPS unlocked
+      fail:
+        msg: "PTP grandmaster has no GPS lock — RTS-25 violated"
+      when: "'GPS' not in ntp_status.stdout"
+
+    - name: Apply LANTIME PTP profile
+      template:
+        src: lantime-ptp.conf.j2
+        dest: /etc/lantime/ptp.conf
+      notify: restart ptp4l
+
+  handlers:
+    - name: restart ptp4l
+      service: { name: ptp4l, state: restarted }

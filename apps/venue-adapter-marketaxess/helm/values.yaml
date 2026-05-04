@@ -1,0 +1,3 @@
+image: { repository: ghcr.io/tobiasoberrauch/swisstms-venue-adapter-marketaxess, tag: 0.1.0 }
+service: { port: 8106 }
+resources: { requests: { cpu: 200m, memory: 512Mi }, limits: { cpu: 1000m, memory: 1Gi } }

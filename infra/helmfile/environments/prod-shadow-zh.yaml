@@ -1,0 +1,33 @@
+# Production-shadow per region (zh). WORM via S3 Object Lock,
+# Aurora Global DB für Postgres, Kafka MirrorMaker 2 cross-region.
+postgresql:
+  primary:
+    persistence:
+      enabled: true
+      size: 1Ti
+      storageClass: managed-premium
+
+global:
+  region: zh
+  # T147 — S3 Object Lock COMPLIANCE retention per FR-035.
+  # MIFID-II categories must be kept ≥ 5 years; EMIR categories ≥ 10 years.
+  # WormArchivalWriter.RetentionCategory drives the per-key duration; the bucket itself
+  # is configured with COMPLIANCE mode so retention can never be reduced or removed.
+  worm:
+    enabled: true
+    bucket: swisstms-regulatory-zh
+    objectLockMode: COMPLIANCE
+    defaultRetentionDays: 1825   # 5y baseline; per-object override goes to 10y for EMIR.
+    categories:
+      MIFID_II:
+        retentionDays: 1825      # FR-035 / MiFID II Art.16 — 5 years
+      EMIR:
+        retentionDays: 3650      # FR-035 / EMIR Refit Art.9.6 — 10 years
+      AUDIT_CHAIN:
+        retentionDays: 3650      # Constitution Principle VI — match longest legal hold
+
+reporting-service:
+  archival:
+    bucket: swisstms-regulatory-zh
+  region: zh
+  profile: prod-shadow

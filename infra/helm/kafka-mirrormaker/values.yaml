@@ -1,0 +1,30 @@
+# T267 — MirrorMaker 2 active-active topology.
+#
+# Each region mirrors the other three in. Topic naming: source cluster prefix is added on the
+# receiving side (ZH receives LD4-prefixed copies of LD4 topics, etc). Offset translation runs
+# automatically; consumer-group lag dashboards are wired in ops/grafana/.
+clusters:
+  zh:
+    bootstrapServers: kafka-zh-bootstrap.swisstms-zh.svc:9092
+  ld4:
+    bootstrapServers: kafka-ld4-bootstrap.swisstms-ld4.svc:9092
+  ny4:
+    bootstrapServers: kafka-ny4-bootstrap.swisstms-ny4.svc:9092
+  ty3:
+    bootstrapServers: kafka-ty3-bootstrap.swisstms-ty3.svc:9092
+
+topicsToReplicate:
+  - cold.exec.fill.v1
+  - cold.book.event.v1
+  - cold.surveillance.alert.v1
+  - cold.marketdata.l1.v1
+  - audit.command.v1
+  - region.handover.cutover.v1
+  - tca.event.v1
+
+replicationFactor: 3
+groupsToReplicate:
+  - "swisstms.*"
+syncTopicAcls: false
+syncGroupOffsets: true
+emitCheckpointsEnabled: true

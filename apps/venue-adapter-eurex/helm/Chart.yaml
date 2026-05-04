@@ -1,0 +1,6 @@
+apiVersion: v2
+name: venue-adapter-eurex
+version: 0.1.0
+appVersion: "0.1.0"
+description: Eurex T7 ETI binary + FIX gateway
+type: application

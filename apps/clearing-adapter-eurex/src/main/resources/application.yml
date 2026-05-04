@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: clearing-adapter-eurex
+
+server:
+  port: 8088
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+
+swisstms:
+  region: ${SWISSTMS_REGION:ZH}
+  eurex:
+    amqp:
+      url: ${EUREX_AMQP_URL:amqp://localhost:5672}
+      username: ${EUREX_AMQP_USER:swisstms}
+      password: ${EUREX_AMQP_PASSWORD:#{null}}
+    queues:
+      trade-capture: eurex.tradecapture
+      position-maintenance: eurex.position
+      broadcasts: eurex.broadcasts
+    truststore:
+      path: ${EUREX_TRUSTSTORE_PATH:/dev/null}
+      password: ${EUREX_TRUSTSTORE_PASSWORD:dummy}
+
+logging:
+  level:
+    root: INFO
+    ch.swisstms: DEBUG
+    org.apache.qpid: WARN

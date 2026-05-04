@@ -1,0 +1,55 @@
+# Per-Service Tasks für apps/oms-service.
+# Aufruf vom Repo-Root: `task oms:run`, `task oms:test`, `task oms:bench`.
+version: '3'
+
+vars:
+  PROJECT: ":apps:oms-service"
+  PORT: 8080
+
+tasks:
+  build:
+    desc: "Build OMS-Service"
+    cmds:
+      - ./gradlew {{.PROJECT}}:build
+
+  test:
+    desc: "OMS unit + integration tests"
+    cmds:
+      - ./gradlew {{.PROJECT}}:test
+
+  run:
+    desc: "OMS-Service lokal starten (Port 8080) — benötigt Postgres + Kafka via tilt up oder docker compose"
+    cmds:
+      - ./gradlew {{.PROJECT}}:bootRun
+
+  image:
+    desc: "Docker-Image bauen (Cloud Native Buildpacks)"
+    cmds:
+      - ./gradlew {{.PROJECT}}:bootBuildImage --imageName=ghcr.io/tobiasoberrauch/swisstms-oms-service:dev
+
+  logs:
+    desc: "Logs des oms-service Pods (kubectl)"
+    cmds:
+      - kubectl logs -n tms-dev -l app.kubernetes.io/name=oms-service --tail=200 -f
+
+  shell:
+    desc: "psql-Shell auf die OMS-Datenbank"
+    cmds:
+      - psql postgresql://swisstms:swisstms-dev@localhost:5432/swisstms
+
+  curl:order:
+    desc: "Beispiel-POST gegen /api/v1/orders"
+    cmds:
+      - |
+        curl -s -X POST http://localhost:{{.PORT}}/api/v1/orders \
+          -H 'Content-Type: application/json' \
+          -d '{
+            "clOrdId": "TASK-DEMO-'$(date +%s)'",
+            "instrumentId": { "isin": "CH0038863350", "mic": "XSWX" },
+            "side": "BUY",
+            "ordType": "LIMIT",
+            "quantity": 100,
+            "price": 99.50,
+            "timeInForce": "DAY",
+            "routingMode": "DMA"
+          }' | jq

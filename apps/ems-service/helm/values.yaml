@@ -1,0 +1,5 @@
+image: { repository: ghcr.io/tobiasoberrauch/swisstms-ems-service, tag: 0.1.0 }
+replicaCount: 5  # Aeron Cluster Raft quorum 3-of-5
+service: { port: 9100 }
+resources: { requests: { cpu: 2000m, memory: 4Gi }, limits: { cpu: 8000m, memory: 8Gi } }
+nodeSelector: { swisstms.io/hot-path: "true" }

@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package ch.swisstms.entitlements.v1;
+
+option java_multiple_files = true;
+option java_package = "ch.swisstms.entitlements.api.v1";
+
+service EntitlementsService {
+  rpc CheckMarketData(CheckMarketDataRequest) returns (EntitlementDecision);
+  rpc CheckOrderEntry(CheckOrderEntryRequest) returns (EntitlementDecision);
+  rpc TripKillSwitch(TripKillSwitchRequest) returns (KillSwitchAck);
+  rpc ResetKillSwitch(ResetKillSwitchRequest) returns (KillSwitchAck);
+}
+
+message CheckMarketDataRequest {
+  string subject_id = 1;
+  string instrument_isin = 2;
+  string instrument_mic = 3;
+  string level = 4; // L1_TOP_OF_BOOK | L2_DEPTH | L3_FULL_BOOK
+}
+
+message CheckOrderEntryRequest {
+  string subject_id = 1;
+  string instrument_isin = 2;
+  string instrument_mic = 3;
+  string asset_class = 4;
+}
+
+message EntitlementDecision {
+  bool granted = 1;
+  optional string deny_reason = 2;
+}
+
+message TripKillSwitchRequest {
+  string scope_type = 1; // TRADER | STRATEGY | DESK | CLIENT
+  string scope_id = 2;
+  string tripper_user_id = 3;
+  string reason = 4;
+}
+
+message ResetKillSwitchRequest {
+  string scope_type = 1;
+  string scope_id = 2;
+  string resetter_user_id = 3; // MUST differ from tripper (4-eyes)
+}
+
+message KillSwitchAck {
+  bool accepted = 1;
+  optional string reject_reason = 2;
+}

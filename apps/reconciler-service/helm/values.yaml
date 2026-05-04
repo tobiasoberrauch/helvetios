@@ -1,0 +1,12 @@
+image:
+  repository: ghcr.io/tobiasoberrauch/swisstms-reconciler-service
+  tag: 0.1.0
+replicaCount: 1
+service:
+  port: 8086
+env:
+  KAFKA_BOOTSTRAP: kafka:9092
+  SWISSTMS_REGION: ZH
+resources:
+  requests: { cpu: 200m, memory: 512Mi }
+  limits:   { cpu: 1000m, memory: 2Gi }

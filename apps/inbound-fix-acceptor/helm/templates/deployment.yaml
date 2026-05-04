@@ -1,0 +1,60 @@
+{{/*
+  T250 — inbound FIX acceptor. Sized for SC-016 (200 concurrent sessions).
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: inbound-fix-acceptor
+    app.kubernetes.io/tier: warm
+spec:
+  replicas: {{ .Values.replicaCount | default 3 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: inbound-fix-acceptor
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: inbound-fix-acceptor
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          ports:
+            - containerPort: 9001
+              name: fix-primary
+            - containerPort: 9101
+              name: fix-dropcopy
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: aeron
+              mountPath: /dev/shm/aeron
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | default "500m" }}
+              memory: {{ .Values.resources.requests.memory | default "1Gi" }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | default "2000m" }}
+              memory: {{ .Values.resources.limits.memory | default "4Gi" }}
+      volumes:
+        - name: aeron
+          emptyDir:
+            medium: Memory
+            sizeLimit: 4Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: inbound-fix-acceptor
+  ports:
+    - name: fix-primary
+      port: 9001
+    - name: fix-dropcopy
+      port: 9101

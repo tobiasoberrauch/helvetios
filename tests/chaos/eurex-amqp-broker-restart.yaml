@@ -1,0 +1,11 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: eurex-amqp-broker-restart
+spec:
+  action: pod-kill
+  mode: all
+  selector:
+    namespaces: [tms-dev]
+    labelSelectors: { app.kubernetes.io/name: qpid-broker }
+  duration: "60s"

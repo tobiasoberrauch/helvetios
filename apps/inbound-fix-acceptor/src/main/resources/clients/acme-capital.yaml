@@ -1,0 +1,44 @@
+# Sample client config — Phase 13 demonstrationsspecific.
+client:
+  id: ACME-CAPITAL
+  legalEntityId: 213800ABCDEFGH123456
+  status: ACTIVE
+  preferredRegion: ZH
+  fallbackRegion: LD4
+
+session:
+  senderCompId: ACME
+  targetCompId: SWISSTMS
+  fixVersion: FIX_5_0_SP2_FIXT_1_1
+  inboundIpAllowList: [203.0.113.0/24]
+  encryption: TLS_1_3
+  heartbeatIntervalSec: 30
+
+throttle:
+  ordersPerSecond: 1000
+  inFlightOrders: 5000
+  rejectStrategy: REJECT_WITH_BMR
+
+dropCopy:
+  enabled: true
+  separateSession: true
+  senderCompId: SWISSTMS-DC
+  targetCompId: ACME-DC
+
+risk:
+  riskProfileId: ACME_DEFAULT_PROFILE_V3
+  fatFingerNotional: 50000000
+  fatFingerQuantity: 1000000
+  maxOrderSizeNotional: 25000000
+  notionalDailyLimits:
+    EQUITY: 500000000
+    LISTED_DERIVATIVE: 100000000
+    FIXED_INCOME: 200000000
+    FX: 1000000000
+
+permissions:
+  permittedAssetClasses: [EQUITY, LISTED_DERIVATIVE, FX]
+  routing:
+    allowedModes: [DMA, ALGO_WHEEL]
+    allowedAlgos: [VWAP, TWAP, POV]
+    defaultMode: DMA

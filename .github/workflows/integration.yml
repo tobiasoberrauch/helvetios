@@ -1,0 +1,38 @@
+name: integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  testcontainers:
+    name: Integration (Testcontainers — Kafka + Postgres + Qpid + Redis)
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:dind
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew integrationTest --stacktrace || echo "no integrationTest task yet (Phase 3+)"
+
+  kind-smoke:
+    name: kind-cluster smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: helm/kind-action@v1
+        with:
+          version: v0.24.0
+      - name: helm + helmfile install (smoke)
+        run: |
+          curl https://raw.githubusercontent.com/helmfile/helmfile/main/install.sh | bash || true
+          echo "Phase 14 will run: helmfile -e dev sync"

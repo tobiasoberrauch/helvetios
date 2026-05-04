@@ -1,0 +1,14 @@
+# log4brains configuration for the Swiss Trading & Market Support Platform.
+#
+# log4brains generates a static ADR site from the markdown files under
+# docs/decisions/. The site is included in the MkDocs Material build and
+# deployed via .github/workflows/docs.yml.
+
+project:
+  name: 'Swiss Trading & Market Support Platform'
+  tz: 'Europe/Zurich'
+  packages:
+    - name: 'platform'
+      path: 'docs/decisions'
+      adrFolder: 'docs/decisions'
+adrTemplate: 'tools/adr/template.md'

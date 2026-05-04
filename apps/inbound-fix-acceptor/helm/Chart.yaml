@@ -1,0 +1,6 @@
+apiVersion: v2
+name: inbound-fix-acceptor
+version: 0.1.0
+appVersion: "0.1.0"
+description: Sell-side inbound FIX acceptor (Artio + QuickFIX/J)
+type: application

@@ -1,0 +1,34 @@
+{
+  "title": "Swiss-TMS — Follow-the-Sun Handover (T320)",
+  "uid": "follow-the-sun-handover",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": ["region", "cutover", "ftsun"],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Cutover signals — handover.signal.v1",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "sum by (from_region, to_region) (rate(swisstms_region_handover_signal_total[5m]))", "refId": "A" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Active region — last cutover",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "max(swisstms_region_active{} == 1) by (region)", "refId": "B" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Cutover audit-chain entries (last 24h)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "audit_event_count{action=\"region.handover.cutover\"}[24h]", "refId": "C" }
+      ]
+    }
+  ]
+}

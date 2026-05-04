@@ -1,0 +1,47 @@
+# Swiss Trading & Market Support Platform — uv Python workspace root.
+#
+# Per-service pyproject.toml files live under apps/<service>/pyproject.toml
+# and libs/<lib>/pyproject.toml and are added incrementally as each phase
+# brings them online (see specs/001-swiss-tms-platform/tasks.md).
+
+[project]
+name = "swiss-tms-platform"
+version = "0.1.0"
+requires-python = ">=3.12"
+description = "Reference Trading & Market Support Platform mono-repo (Python workspace root)."
+
+[tool.uv.workspace]
+members = [
+    "libs/fix-codec-py",
+    "apps/reference-data-service",
+    "apps/surveillance-service",
+    "apps/venue-adapter-cfets",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # bugbear
+    "UP", # pyupgrade
+    "C4", # comprehensions
+    "PT", # pytest
+    "RUF",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers --strict-config"
+testpaths = ["tests"]
+markers = [
+    "integration: integration tests requiring docker / testcontainers",
+    "conformance: venue conformance tests",
+    "performance: benchmarks and load tests",
+    "chaos: chaos / failure-injection tests",
+    "property: property-based / Hypothesis tests",
+]

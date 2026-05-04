@@ -1,0 +1,30 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: swisstmsnoprivileged
+spec:
+  crd:
+    spec:
+      names:
+        kind: SwissTmsNoPrivileged
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package swisstms.podsecurity
+
+        violation[{"msg": msg}] {
+          c := input.review.object.spec.containers[_]
+          c.securityContext.privileged == true
+          msg := sprintf("container %q is privileged (Constitution: no privileged workloads)", [c.name])
+        }
+
+        violation[{"msg": msg}] {
+          input.review.object.spec.hostNetwork == true
+          msg := "Pod requests hostNetwork — denied by Swiss-TMS baseline"
+        }
+
+        violation[{"msg": msg}] {
+          c := input.review.object.spec.containers[_]
+          not c.securityContext.runAsNonRoot
+          msg := sprintf("container %q does not require runAsNonRoot=true", [c.name])
+        }

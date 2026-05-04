@@ -1,0 +1,41 @@
+# T222 — RTS-25 PTP divergence alert.
+#
+# Fires when any trading server's absolute offset from UTC stays above 50 µs for 5 minutes.
+# 100 µs is the regulatory ceiling — alerting at 50 µs gives Network 5+ minutes of slack to
+# investigate the boundary clock before we breach.
+#
+# Constitution Principle IV — wall-clock divergence is operational sin. The first response is
+# always to confirm the grandmaster is healthy and that no Cisco hop has lost PTP-aware mode.
+groups:
+  - name: ptp-divergence
+    interval: 30s
+    rules:
+      - alert: PtpDivergenceWarning
+        expr: abs(ptp_offset_microseconds) > 50
+        for: 5m
+        labels:
+          severity: warning
+          team: market-support
+          regulation: RTS-25
+        annotations:
+          summary: "PTP divergence > 50µs on {{ $labels.instance }}"
+          description: |
+            Server {{ $labels.instance }} has been > 50µs from UTC for 5+ minutes
+            (current value {{ $value | humanize }}µs). RTS-25 ceiling is 100µs. Investigate
+            the boundary clock and upstream Meinberg LANTIME before we breach.
+          runbook: "https://docs.swisstms.ch/runbooks/ptp-audit-pack-generation/"
+
+      - alert: PtpDivergenceCritical
+        expr: abs(ptp_offset_microseconds) > 100
+        for: 1m
+        labels:
+          severity: critical
+          team: market-support
+          regulation: RTS-25
+        annotations:
+          summary: "RTS-25 BREACH — {{ $labels.instance }} > 100µs from UTC"
+          description: |
+            Server {{ $labels.instance }} is {{ $value | humanize }}µs off UTC. This breaches
+            RTS-25 Art. 50 — every trade timestamp produced while the breach lasts is at
+            risk of regulator rejection. Page oncall and disable trading on this host.
+          runbook: "https://docs.swisstms.ch/runbooks/ptp-audit-pack-generation/"

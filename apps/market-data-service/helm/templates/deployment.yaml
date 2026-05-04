@@ -1,0 +1,62 @@
+{{/*
+  T163 — market-data-service Deployment + Service.
+  Hosted on the hot-tier node pool (Aeron multicast requires kernel multicast support).
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: market-data-service
+    app.kubernetes.io/tier: hot
+spec:
+  replicas: {{ .Values.replicaCount | default 2 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: market-data-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: market-data-service
+    spec:
+      tolerations:
+        - key: "swisstms.ch/tier"
+          value: "hot"
+          effect: "NoSchedule"
+      containers:
+        - name: app
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 40123
+              protocol: UDP
+              name: aeron-mcast
+          env:
+            - name: SWISSTMS_MARKETDATA_AERON_ENABLED
+              value: "true"
+            - name: SWISSTMS_MARKETDATA_QUESTDB_ENABLED
+              value: {{ .Values.questdb.enabled | quote }}
+            - name: SWISSTMS_MARKETDATA_CLICKHOUSE_ENABLED
+              value: {{ .Values.clickhouse.enabled | quote }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | default "1000m" }}
+              memory: {{ .Values.resources.requests.memory | default "2Gi" }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | default "4000m" }}
+              memory: {{ .Values.resources.limits.memory | default "8Gi" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app.kubernetes.io/name: market-data-service
+  ports:
+    - port: 8080
+      name: http

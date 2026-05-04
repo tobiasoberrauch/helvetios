@@ -1,0 +1,56 @@
+{{/*
+  T210 — surveillance-service Deployment + Service.
+  Two replicas: one runs the streaming detector (Kafka source → pattern → Kafka sink),
+  the other runs the analyst FastAPI on :8000. Phase 14 splits these into separate workloads.
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: surveillance-service
+    app.kubernetes.io/tier: cold
+spec:
+  replicas: {{ .Values.replicaCount | default 2 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: surveillance-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: surveillance-service
+    spec:
+      containers:
+        - name: detector
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          command: ["python", "-m", "surveillance.pipeline.kafka_io"]
+          env:
+            - name: KAFKA_BOOTSTRAP
+              value: {{ .Values.kafka.bootstrap | quote }}
+            - name: OPENSEARCH_URL
+              value: {{ .Values.opensearch.url | quote }}
+        - name: api
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          command: ["uvicorn", "surveillance.api.feedback:app", "--host", "0.0.0.0", "--port", "8000"]
+          ports:
+            - containerPort: 8000
+              name: http
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app.kubernetes.io/name: surveillance-service
+  ports:
+    - port: 8000
+      name: http

@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: reporting-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/swisstms}
+    username: ${SPRING_DATASOURCE_USERNAME:swisstms}
+    password: ${SPRING_DATASOURCE_PASSWORD:swisstms-dev}
+  flyway:
+    enabled: true
+  batch:
+    job:
+      enabled: false  # we trigger via @Scheduled or REST, not on startup
+
+server:
+  port: 8083
+
+management:
+  endpoints:
+    web:
+      exposure: { include: health, info, metrics, prometheus }
+
+swisstms:
+  region: ${SWISSTMS_REGION:ZH}
+  reporting:
+    finfrag:
+      sftp-url: ${FINFRAG_SFTP:sftp://stub-six-tr/inbound/}
+    rts22:
+      arm-url: ${RTS22_ARM_URL:https://stub-lseg-tradecho/api/v1/transactions}
+    traxapa:
+      session-id: SWISSTMS-MAX-APA
+    emir:
+      dtcc-url: ${EMIR_DTCC_URL:https://stub-dtcc-gtr/api/v1}
+      regis-url: ${EMIR_REGIS_URL:https://stub-regis-tr/api/v1}
+    archival:
+      bucket: swisstms-regulatory
+      retention-mode: COMPLIANCE
+      retention-years: 5
+
+logging:
+  level:
+    root: INFO
+    ch.swisstms: DEBUG

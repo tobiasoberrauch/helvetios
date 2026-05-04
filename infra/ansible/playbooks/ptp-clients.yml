@@ -1,0 +1,37 @@
+---
+# ptp4l + phc2sys auf Solarflare/Mellanox NICs mit HW-Timestamping.
+- name: Configure PTP clients (trading servers)
+  hosts: trading_servers
+  become: true
+  vars:
+    ptp_iface: eth0
+    ptp_domain: 0
+  tasks:
+    - name: Install linuxptp
+      package: { name: linuxptp, state: present }
+
+    - name: Verify NIC supports HW-timestamping
+      shell: ethtool -T {{ ptp_iface }} | grep -i hardware-transmit
+      register: hwtimestamp_check
+      failed_when: hwtimestamp_check.rc != 0
+
+    - name: Configure ptp4l
+      template: { src: ptp4l.conf.j2, dest: /etc/linuxptp/ptp4l.conf }
+      notify: restart ptp4l
+
+    - name: Configure phc2sys
+      template: { src: phc2sys.conf.j2, dest: /etc/linuxptp/phc2sys.conf }
+      notify: restart phc2sys
+
+    - name: Enable services
+      systemd:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop: [ptp4l, phc2sys]
+
+  handlers:
+    - name: restart ptp4l
+      systemd: { name: ptp4l, state: restarted }
+    - name: restart phc2sys
+      systemd: { name: phc2sys, state: restarted }

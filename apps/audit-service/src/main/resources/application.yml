@@ -1,0 +1,14 @@
+spring: { application: { name: audit-service }, kafka: { bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092} } }
+server: { port: 8085 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  region: ${SWISSTMS_REGION:ZH}
+  audit:
+    s3:
+      bucket: swisstms-audit-worm
+      retention-mode: COMPLIANCE
+      retention-years: 5
+    opensearch:
+      host: ${OPENSEARCH_HOST:localhost}
+      port: ${OPENSEARCH_PORT:9200}
+      index: audit-{region}-{yyyy.MM}

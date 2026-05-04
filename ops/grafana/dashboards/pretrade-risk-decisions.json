@@ -1,0 +1,46 @@
+{
+  "title": "Swiss-TMS — Pre-Trade Risk Decisions (T321)",
+  "uid": "pretrade-risk-decisions",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "tags": ["risk", "pretrade", "hot-path"],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Decision rate (Approved vs Rejected) per second",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "sum by (decision) (rate(swisstms_pretrade_risk_decisions_total[1m]))", "refId": "A" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "p99 evaluation latency (µs) — SC-017 target 50µs",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum(rate(swisstms_pretrade_risk_eval_micros_bucket[5m])) by (le))", "refId": "B" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "µs",
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 40 },
+              { "color": "red", "value": 50 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "piechart",
+      "title": "Reject reasons (last 1h)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "sum by (reason) (increase(swisstms_pretrade_risk_rejected_total[1h]))", "refId": "C" }
+      ]
+    }
+  ]
+}

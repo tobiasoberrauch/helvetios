@@ -1,0 +1,6 @@
+apiVersion: v2
+name: clearing-adapter-six
+version: 0.1.0
+appVersion: "0.1.0"
+description: SIX x-clear / SECOM clearing
+type: application

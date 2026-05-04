@@ -1,0 +1,37 @@
+{
+  "title": "Swiss-TMS — Eurex AMQP Throughput (T318)",
+  "uid": "eurex-amqp-throughput",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": ["eurex", "clearing", "amqp"],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "TradeCaptureReport(AE) submit rate",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "rate(swisstms_clearing_eurex_submitted_total[1m])", "refId": "A" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "TLS cert days remaining (CertRotationAuditor)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "swisstms_clearing_eurex_cert_days_remaining", "refId": "B" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 30 },
+              { "color": "green", "value": 90 }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

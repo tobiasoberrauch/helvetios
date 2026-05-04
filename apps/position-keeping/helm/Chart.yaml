@@ -1,0 +1,6 @@
+apiVersion: v2
+name: position-keeping
+version: 0.1.0
+appVersion: "0.1.0"
+description: Position keeping
+type: application

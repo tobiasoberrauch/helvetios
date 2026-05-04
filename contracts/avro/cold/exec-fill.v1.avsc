@@ -1,0 +1,25 @@
+{
+  "type": "record",
+  "namespace": "ch.swisstms.events.exec.v1",
+  "name": "ExecutionFill",
+  "doc": "Authoritative post-reconciliation fill (Constitution V — drop-copy wins).",
+  "fields": [
+    {"name": "fillId",       "type": {"type": "string", "logicalType": "uuid"}},
+    {"name": "executionId",  "type": "string", "doc": "Venue ExecID"},
+    {"name": "orderId",      "type": {"type": "string", "logicalType": "uuid"}},
+    {"name": "parentOrderId","type": ["null", {"type": "string", "logicalType": "uuid"}], "default": null},
+    {"name": "venueId",      "type": "string", "doc": "MIC"},
+    {"name": "instrumentIsin", "type": "string"},
+    {"name": "instrumentMic",  "type": "string"},
+    {"name": "side",         "type": {"type": "enum", "name": "Side", "symbols": ["BUY","SELL","SELL_SHORT"]}},
+    {"name": "quantity",     "type": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}},
+    {"name": "price",        "type": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}},
+    {"name": "liquidityIndicator", "type": {"type": "enum", "name": "LiquidityIndicator", "symbols": ["ADD","REMOVE","CROSSED","AUCTION"]}},
+    {"name": "bizTimeMicros",  "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "procTimeMicros", "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "source",       "type": {"type": "enum", "name": "FillSource", "symbols": ["VENUE_SESSION","DROP_COPY","RECONCILED_BOTH"]}},
+    {"name": "ddpComplete",  "type": "boolean", "default": false},
+    {"name": "region",       "type": {"type": "enum", "name": "Region", "symbols": ["ZH","LD4","NY4","TY3"]}},
+    {"name": "traceparent",  "type": ["null", "string"], "default": null}
+  ]
+}

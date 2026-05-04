@@ -1,0 +1,90 @@
+# T221 — Vector pipeline shipping daily PTP / NTP logs to OpenSearch.
+#
+# Vector runs as a daemonset on every trading-server node. Each node tails the journald units
+# `ptp4l@*.service` and `phc2sys@*.service`, parses the divergence sample out of the log line,
+# enriches with hostname / region / cabinet, and writes one document per sample into the
+# `ptp-logs-YYYY-MM-DD` daily index. ``tools/ptp-audit-report/`` reads the same index pattern.
+
+api:
+  enabled: true
+  address: "127.0.0.1:8686"
+
+sources:
+  ptp4l_journal:
+    type: journald
+    include_units:
+      - "ptp4l@.service"
+      - "ptp4l@*.service"
+    current_boot_only: false
+
+  phc2sys_journal:
+    type: journald
+    include_units:
+      - "phc2sys@.service"
+      - "phc2sys@*.service"
+    current_boot_only: false
+
+transforms:
+  ptp4l_parse:
+    type: remap
+    inputs:
+      - ptp4l_journal
+    source: |
+      # Lines look like:
+      #   ptp4l[12345.678]: master offset    -34 s2 freq -16124 path delay   1234
+      .source = "ptp4l"
+      parsed = parse_regex(
+        .message,
+        r'master offset\s+(?P<offset>-?\d+)\s+s\d+\s+freq\s+(?P<freq>-?\d+)\s+path delay\s+(?P<path>\d+)'
+      ) ?? {}
+      if parsed != {} {
+        .offset_ns = to_int!(parsed.offset)
+        .freq_ppb = to_int!(parsed.freq)
+        .path_delay_ns = to_int!(parsed.path)
+      }
+      .server = .host
+      .timestamp_iso = format_timestamp!(now(), "%+")
+      .@timestamp = .timestamp_iso
+
+  phc2sys_parse:
+    type: remap
+    inputs:
+      - phc2sys_journal
+    source: |
+      .source = "phc2sys"
+      parsed = parse_regex(
+        .message,
+        r'phc offset\s+(?P<offset>-?\d+)\s+s\d+\s+freq\s+(?P<freq>-?\d+)\s+delay\s+(?P<delay>-?\d+)'
+      ) ?? {}
+      if parsed != {} {
+        .offset_ns = to_int!(parsed.offset)
+        .freq_ppb = to_int!(parsed.freq)
+        .delay_ns = to_int!(parsed.delay)
+      }
+      .server = .host
+      .timestamp_iso = format_timestamp!(now(), "%+")
+      .@timestamp = .timestamp_iso
+
+  filter_with_offset:
+    type: filter
+    inputs:
+      - ptp4l_parse
+      - phc2sys_parse
+    condition: 'exists(.offset_ns)'
+
+sinks:
+  opensearch_ptp_logs:
+    type: elasticsearch
+    inputs:
+      - filter_with_offset
+    endpoints:
+      - "${OPENSEARCH_URL:-https://opensearch.internal:9200}"
+    auth:
+      strategy: basic
+      user: "${OPENSEARCH_USER:-vector}"
+      password: "${OPENSEARCH_PASSWORD}"
+    bulk:
+      index: "ptp-logs-%Y-%m-%d"
+    api_version: v8
+    healthcheck:
+      enabled: true

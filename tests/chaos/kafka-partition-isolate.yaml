@@ -1,0 +1,12 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: kafka-partition-isolate
+spec:
+  action: partition
+  mode: one
+  selector:
+    namespaces: [tms-dev]
+    labelSelectors: { app.kubernetes.io/name: kafka }
+  direction: both
+  duration: "60s"

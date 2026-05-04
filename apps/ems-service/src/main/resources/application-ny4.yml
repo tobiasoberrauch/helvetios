@@ -1,0 +1,20 @@
+# T270 — per-region EMS overlay for ny4.
+#
+# Aeron Cluster Raft can NOT span the WAN — every region runs an independent 5-node cluster.
+# Cross-region order continuity comes from drop-copy (Constitution V) + Kafka MirrorMaker 2 not
+# from cluster-level replication.
+spring:
+  config:
+    activate:
+      on-profile: ny4
+
+swisstms:
+  region: ny4
+  ems:
+    cluster:
+      enabled: true
+      members: 0,ems-service-0.ny4,9001,9002,9003,9004,9005;1,ems-service-1.ny4,9001,9002,9003,9004,9005;2,ems-service-2.ny4,9001,9002,9003,9004,9005;3,ems-service-3.ny4,9001,9002,9003,9004,9005;4,ems-service-4.ny4,9001,9002,9003,9004,9005
+      archiveDir: /var/swisstms/aeron/archive/ny4
+    journal:
+      enabled: true
+      path: /var/swisstms/journal/ems/ny4

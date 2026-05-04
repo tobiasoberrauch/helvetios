@@ -1,0 +1,45 @@
+{
+  "type": "record",
+  "namespace": "ch.swisstms.events.oms.v1",
+  "name": "OmsEvent",
+  "doc": "OMS aggregate event published from the Outbox to cold.oms.event.v1.",
+  "fields": [
+    {"name": "eventId",   "type": {"type": "string", "logicalType": "uuid"}},
+    {"name": "orderId",   "type": {"type": "string", "logicalType": "uuid"}},
+    {"name": "seq",       "type": "long", "doc": "Monotonic per orderId"},
+    {"name": "eventType", "type": {
+      "type": "enum",
+      "name": "OmsEventType",
+      "symbols": [
+        "ORDER_SUBMITTED",
+        "ORDER_ACKED",
+        "ORDER_PARTIALLY_FILLED",
+        "ORDER_FILLED",
+        "ORDER_CANCELLED",
+        "ORDER_REPLACED",
+        "ORDER_REJECTED",
+        "ORDER_BUSINESS_REJECTED",
+        "ORDER_TRADE_BUSTED",
+        "ORDER_EXPIRED"
+      ]
+    }},
+    {"name": "clOrdId",   "type": "string"},
+    {"name": "clientId",  "type": {"type": "string", "logicalType": "uuid"}},
+    {"name": "instrumentIsin", "type": "string"},
+    {"name": "instrumentMic",  "type": "string"},
+    {"name": "side",      "type": {"type": "enum", "name": "Side", "symbols": ["BUY", "SELL", "SELL_SHORT"]}},
+    {"name": "ordType",   "type": {"type": "enum", "name": "OrdType", "symbols": ["MARKET","LIMIT","STOP","STOP_LIMIT","FUNARI","MOO","LOO"]}},
+    {"name": "quantity",  "type": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}},
+    {"name": "price",     "type": ["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}], "default": null},
+    {"name": "cumQty",    "type": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}},
+    {"name": "leavesQty", "type": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}},
+    {"name": "avgPx",     "type": ["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}], "default": null},
+    {"name": "venueId",   "type": ["null", "string"], "default": null},
+    {"name": "region",    "type": {"type": "enum", "name": "Region", "symbols": ["ZH","LD4","NY4","TY3"]}},
+    {"name": "bizTimeMicros",  "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "procTimeMicros", "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "prevHash",  "type": "bytes", "doc": "SHA-256 of previous event in the per-order chain"},
+    {"name": "hash",      "type": "bytes", "doc": "SHA-256(prevHash || canonical(payload))"},
+    {"name": "traceparent", "type": ["null", "string"], "default": null}
+  ]
+}

@@ -1,0 +1,47 @@
+# T333 — Linkerd 2.16 + SPIFFE/SPIRE workload-identity values.
+#
+# Linkerd handles mTLS data-plane; SPIFFE/SPIRE issues the workload identities Linkerd uses for
+# trust-domain-scoped certificates. The combo gives us cryptographic workload identity per
+# region without baking secrets into images.
+linkerd:
+  controlPlaneVersion: 2.16.0
+  proxyVersion: 2.16.0
+  identity:
+    issuer:
+      scheme: kubernetes.io/tls   # cert-manager + OpenBao PKI provides the issuer cert
+      tls:
+        secretName: linkerd-identity-issuer
+  proxy:
+    resources:
+      cpu:
+        request: 100m
+        limit: 500m
+      memory:
+        request: 64Mi
+        limit: 256Mi
+
+spire:
+  trustDomain: swisstms.ch
+  server:
+    replicas: 3
+    dataStore:
+      kind: postgres
+      connectionString: postgresql://spire@aurora-spire-zh.swisstms.ch:5432/spire
+  agent:
+    socketPath: /run/spire/agent-sockets/api.sock
+    workloadAttestor:
+      k8s:
+        kubeletReadOnlyPort: 10255
+
+federation:
+  # Each region has its own SPIRE server; federate so a workload in ZH can mTLS to a workload in
+  # LD4 using SPIFFE-IDs scoped to the same trust domain.
+  bundles:
+    - trustDomain: swisstms.ch
+      bundleEndpointUrl: https://spire-zh.swisstms.ch/bundle
+    - trustDomain: swisstms.ch
+      bundleEndpointUrl: https://spire-ld4.swisstms.ch/bundle
+    - trustDomain: swisstms.ch
+      bundleEndpointUrl: https://spire-ny4.swisstms.ch/bundle
+    - trustDomain: swisstms.ch
+      bundleEndpointUrl: https://spire-ty3.swisstms.ch/bundle

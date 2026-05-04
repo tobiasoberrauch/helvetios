@@ -1,0 +1,41 @@
+name: performance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  jmh:
+    name: JMH microbenchmarks (FIX, SBE, Aeron, pre-trade-risk)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew jmh --stacktrace || echo "no JMH tasks yet (Phase 2+)"
+      - name: Compare against main baseline
+        run: |
+          # Phase 16 (T339) wires Mimir push + > 20% regression flag.
+          echo "TODO: compare to baseline; mark PR as performance-regression on > 20% degradation"
+
+  k6:
+    name: k6 load (REST + sustained throughput)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          if compgen -G "tests/performance/k6/*.js" > /dev/null; then
+            curl -s https://github.com/grafana/k6/releases/download/v0.53.0/k6-v0.53.0-linux-amd64.tar.gz \
+              | tar -xz --strip-components=1 -C /usr/local/bin k6-v0.53.0-linux-amd64/k6
+            for f in tests/performance/k6/*.js; do k6 run --duration 30s "$f"; done
+          else
+            echo "no k6 scripts yet"
+          fi

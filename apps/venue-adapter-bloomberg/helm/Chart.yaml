@@ -1,0 +1,6 @@
+apiVersion: v2
+name: venue-adapter-bloomberg
+version: 0.1.0
+appVersion: "0.1.0"
+description: Bloomberg BLPAPI / EMSX adapter
+type: application

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: venue-adapter-refinitiv
+version: 0.1.0
+appVersion: "0.1.0"
+description: Refinitiv EMA RTSDK adapter
+type: application

@@ -1,0 +1,30 @@
+groups:
+  - name: swisstms-eurex-clearing
+    rules:
+      - alert: EurexTruststoreCertExpiryWarning
+        expr: swisstms_eurex_truststore_days_remaining < 30
+        for: 1h
+        labels:
+          severity: sev-3
+          context: us4
+        annotations:
+          summary: "Eurex truststore certificate expires in <30 days ({{ $labels.alias }})"
+          runbook: "ops/runbooks/eurex-amqp-cert-rotation.md"
+
+      - alert: EurexTruststoreCertExpired
+        expr: swisstms_eurex_truststore_days_remaining < 0
+        for: 5m
+        labels:
+          severity: sev-1
+        annotations:
+          summary: "Eurex truststore certificate has EXPIRED ({{ $labels.alias }}) — clearing connection blocked"
+          runbook: "ops/runbooks/eurex-amqp-cert-rotation.md"
+
+      - alert: EurexAmqpConnectionDown
+        expr: spring_jms_connection_active{application="clearing-adapter-eurex"} < 1
+        for: 2m
+        labels:
+          severity: sev-2
+        annotations:
+          summary: "Eurex AMQP 1.0 connection is down"
+          runbook: "ops/runbooks/eurex-amqp-cert-rotation.md"

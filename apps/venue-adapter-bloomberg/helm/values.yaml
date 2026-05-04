@@ -1,0 +1,4 @@
+image: { repository: ghcr.io/tobiasoberrauch/swisstms-venue-adapter-bloomberg, tag: 0.1.0 }
+service: { port: 8103 }
+env: { BLOOMBERG_FLAVOUR: DESKTOP }
+resources: { requests: { cpu: 200m, memory: 512Mi }, limits: { cpu: 1000m, memory: 2Gi } }

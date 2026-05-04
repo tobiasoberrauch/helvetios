@@ -1,0 +1,105 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  java:
+    name: Java (Spotless + Checkstyle)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew spotlessCheck checkstyleMain checkstyleTest --stacktrace
+
+  python:
+    name: Python (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-packages
+      - run: uv run ruff check .
+
+  typescript:
+    name: TypeScript (eslint + prettier)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: |
+          if [ -f apps/trader-ui/package.json ]; then
+            cd apps/trader-ui && npm ci && npm run lint
+          else
+            echo "trader-ui not yet present (Phase 3 US1)"
+          fi
+
+  go:
+    name: Go (vet + golangci-lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - run: |
+          if compgen -G "tools/*/go.mod" > /dev/null; then
+            go vet ./...
+          else
+            echo "No Go modules yet (Phase 11 US9)"
+          fi
+
+  constitution-gates:
+    name: Constitution gates (FIX-tag collisions, no wall-clock)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Forbid System.currentTimeMillis() outside libs/time-sync/
+        run: |
+          # Principle IV — domain code MUST NOT use wall-clock directly.
+          if grep -RInE 'System\.(currentTimeMillis|nanoTime)\(\)' \
+              --include='*.java' \
+              --exclude-dir='libs/time-sync' \
+              --exclude-dir='build' \
+              --exclude-dir='.gradle' \
+              apps/ libs/ tests/ 2>/dev/null | grep -v '@SuppressWarnings.*time-sync-exempt' | grep -v 'time-sync-exempt'; then
+            echo "::error::System.currentTimeMillis()/nanoTime() forbidden outside libs/time-sync/. See Constitution Principle IV."
+            exit 1
+          fi
+      - name: Forbid wall-clock in Python domain code
+        run: |
+          if grep -RInE '(time\.time(_ns)?\(\)|datetime\.now\(\)|datetime\.utcnow\(\))' \
+              --include='*.py' \
+              --exclude-dir='__pycache__' \
+              apps/ libs/ tests/ 2>/dev/null \
+              | grep -vE '(libs/time-sync-py|tests/property/python|tests/integration)' \
+              | grep -v '# time-sync-exempt'; then
+            echo "::error::time.time/datetime.now forbidden in domain code. See Constitution Principle IV."
+            exit 1
+          fi
+
+  hexagonal-archunit:
+    name: Hexagonal architecture (ArchUnit) — Constitution Principle I
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew :tests:architecture:test --stacktrace

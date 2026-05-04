@@ -1,0 +1,25 @@
+# T314 — Chaos Mesh experiment: kill all entitlements-service replicas, assert fail-closed.
+#
+# Pass criteria:
+# 1. Within 30 s every new market-data subscribe goes to DENIED in SubscriptionManager.
+# 2. Pre-trade risk gateway uses its 30 s cache TTL (Constitution V — fail closed) before
+#    rejecting all new orders for unknown clients.
+# 3. After replicas come back, fresh subscribes resolve normally within 1 minute.
+#
+#   kubectl apply -f tests/chaos/entitlements-service-down.yaml -n swisstms-uat
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: entitlements-service-down
+  namespace: swisstms-uat
+spec:
+  action: pod-failure
+  mode: all
+  selector:
+    namespaces:
+      - swisstms-uat
+    labelSelectors:
+      app.kubernetes.io/name: entitlements-service
+  duration: 90s
+  scheduler:
+    cron: '@every 1h'    # rolling chaos drill — disable in prod

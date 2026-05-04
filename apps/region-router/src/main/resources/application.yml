@@ -1,0 +1,5 @@
+spring: { application: { name: region-router }, kafka: { bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092} } }
+server: { port: 8087 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  region: ${SWISSTMS_REGION:ZH}

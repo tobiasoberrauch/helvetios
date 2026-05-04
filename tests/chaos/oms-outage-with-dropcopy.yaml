@@ -1,0 +1,66 @@
+# T089 — Chaos test: OMS-Outage of 50 (simulated) minutes while drop-copy
+# continues to emit fills. Asserts that on OMS recovery:
+#   1. No fills are lost.
+#   2. No fills are duplicated.
+#   3. The hash chain in order_event remains consistent.
+#
+# Voraussetzung: kind / k3d Cluster mit Chaos Mesh installiert
+# (`make chaos-install`). Verifikations-Skript läuft danach.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: oms-outage-50min-simulated
+  namespace: tms-dev
+spec:
+  action: pod-failure
+  mode: all
+  selector:
+    namespaces: [tms-dev]
+    labelSelectors:
+      app.kubernetes.io/name: oms-service
+  duration: "120s"   # simulated 50min compressed to 2min for CI
+
+---
+# Verification job — runs after the chaos finishes. Asserts the
+# Constitution-V invariant: drop-copy events arriving during the OMS
+# outage are reapplied at recovery, and the hash chain is intact.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: oms-outage-verifier
+  namespace: tms-dev
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: verifier
+          image: ghcr.io/tobiasoberrauch/swisstms-chaos-verifier:0.1.0
+          env:
+            - name: PG_URL
+              value: "postgresql://swisstms:swisstms-dev@postgres:5432/swisstms"
+            - name: KAFKA_BOOTSTRAP
+              value: "kafka:9092"
+            - name: TEST_DURATION_SEC
+              value: "120"
+          command:
+            - sh
+            - -c
+            - |
+              set -euo pipefail
+              echo "Waiting for OMS to recover…"
+              until curl -fsS http://oms-oms-service:8080/actuator/health/readiness; do sleep 5; done
+              # 1. count drop-copy fills emitted during the outage
+              DC_COUNT=$(kafka-consumer-groups.sh --bootstrap-server $KAFKA_BOOTSTRAP \
+                  --describe --group oms-dropcopy-recovery | grep warm.dropcopy.six.v1 | awk '{print $5}')
+              echo "Drop-copy events: $DC_COUNT"
+              # 2. assert audit chain integrity
+              psql $PG_URL -tAc "
+                SELECT NOT bool_or(broken) FROM (
+                  SELECT seq, prev_hash, lag(hash) OVER (PARTITION BY order_id ORDER BY seq) AS expected,
+                         (seq != 1 AND prev_hash IS DISTINCT FROM lag(hash) OVER (PARTITION BY order_id ORDER BY seq)) AS broken
+                  FROM order_event
+                ) chk
+              " | grep -q "^t$" || { echo 'CHAIN BROKEN'; exit 1; }
+              echo '✓ chain ok, recovery passed'

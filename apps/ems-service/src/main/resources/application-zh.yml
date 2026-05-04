@@ -1,0 +1,20 @@
+# T270 — per-region EMS overlay for zh.
+#
+# Aeron Cluster Raft can NOT span the WAN — every region runs an independent 5-node cluster.
+# Cross-region order continuity comes from drop-copy (Constitution V) + Kafka MirrorMaker 2 not
+# from cluster-level replication.
+spring:
+  config:
+    activate:
+      on-profile: zh
+
+swisstms:
+  region: zh
+  ems:
+    cluster:
+      enabled: true
+      members: 0,ems-service-0.zh,9001,9002,9003,9004,9005;1,ems-service-1.zh,9001,9002,9003,9004,9005;2,ems-service-2.zh,9001,9002,9003,9004,9005;3,ems-service-3.zh,9001,9002,9003,9004,9005;4,ems-service-4.zh,9001,9002,9003,9004,9005
+      archiveDir: /var/swisstms/aeron/archive/zh
+    journal:
+      enabled: true
+      path: /var/swisstms/journal/ems/zh

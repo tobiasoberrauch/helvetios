@@ -1,0 +1,6 @@
+apiVersion: v2
+name: clearing-adapter-otcc
+version: 0.1.0
+appVersion: "0.1.0"
+description: OTCC clearing for Swap Connect
+type: application

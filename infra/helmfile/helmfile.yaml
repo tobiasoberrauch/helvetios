@@ -1,0 +1,42 @@
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: strimzi
+    url: https://strimzi.io/charts/
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+  - name: linkerd
+    url: https://helm.linkerd.io/stable
+
+releases:
+  # ---------------------------------------------------------------
+  # Phase 2 (Foundational) — Infrastructure layer.
+  # ---------------------------------------------------------------
+  - name: postgres
+    namespace: tms-{{`{{ .Environment.Name }}`}}
+    chart: bitnami/postgresql
+    version: 16.x.x
+    values:
+      - environments/{{`{{ .Environment.Name }}`}}.yaml
+
+  - name: kafka
+    namespace: tms-{{`{{ .Environment.Name }}`}}
+    chart: strimzi/strimzi-kafka-operator
+    version: 0.43.x
+    values:
+      - environments/{{`{{ .Environment.Name }}`}}.yaml
+
+  - name: prometheus-stack
+    namespace: tms-observability-{{`{{ .Environment.Name }}`}}
+    chart: prometheus-community/kube-prometheus-stack
+    version: 65.x.x
+
+  # ---------------------------------------------------------------
+  # Phase 3+ — App services come online here as their charts mature.
+  # Uncomment per-phase:
+  # ---------------------------------------------------------------
+  # - name: oms-service
+  #   namespace: tms-{{`{{ .Environment.Name }}`}}
+  #   chart: ../../apps/oms-service/helm

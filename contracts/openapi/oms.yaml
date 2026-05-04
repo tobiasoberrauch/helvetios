@@ -1,0 +1,216 @@
+openapi: 3.0.3
+info:
+  title: Swiss TMS — OMS REST API
+  version: 1.0.0
+  description: |
+    Trader-UI / in-house client REST surface for the OMS aggregate.
+    High-throughput sell-side order entry uses inbound FIX (see
+    `contracts/fix-sessions/inbound-acceptor-config.md`); REST is for
+    human operators and back-office automation.
+servers:
+  - url: https://oms.{region}.swisstms.local/api/v1
+    variables:
+      region:
+        default: zh
+        enum: [zh, ld4, ny4, ty3]
+
+security:
+  - bearerAuth: []
+
+paths:
+  /orders:
+    post:
+      summary: Submit a new order
+      security: [{ bearerAuth: ['order:submit'] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderRequest' }
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderAck' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '403': { $ref: '#/components/responses/EntitlementDenied' }
+        '422': { $ref: '#/components/responses/PretradeRiskRejected' }
+    get:
+      summary: List orders for the authenticated trader
+      security: [{ bearerAuth: ['order:read'] }]
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - { name: from,   in: query, schema: { type: string, format: date-time } }
+        - { name: to,     in: query, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Order' }
+
+  /orders/{orderId}:
+    parameters:
+      - { name: orderId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: Get order detail (with executions and event history)
+      security: [{ bearerAuth: ['order:read'] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderDetail' }
+
+  /orders/{orderId}/cancel:
+    parameters:
+      - { name: orderId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: Cancel an outstanding order
+      security: [{ bearerAuth: ['order:cancel'] }]
+      responses:
+        '202': { description: Cancel request submitted }
+        '409': { description: Order not in cancellable state }
+
+  /orders/{orderId}/replace:
+    parameters:
+      - { name: orderId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: Replace (modify) an outstanding order
+      security: [{ bearerAuth: ['order:replace'] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReplaceRequest' }
+      responses:
+        '202': { description: Replace request submitted }
+        '409': { description: Order not in replaceable state }
+
+  /audit/{orderId}:
+    parameters:
+      - { name: orderId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: Tamper-evident audit chain for an order (compliance-only)
+      security: [{ bearerAuth: ['audit:read'] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AuditEvent' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    InstrumentId:
+      type: object
+      required: [isin, mic]
+      properties:
+        isin: { type: string, pattern: '^[A-Z]{2}[A-Z0-9]{9}[0-9]$' }
+        mic:  { type: string, pattern: '^[A-Z0-9]{4}$' }
+    OrderRequest:
+      type: object
+      required: [clOrdId, instrumentId, side, ordType, quantity, timeInForce, routingMode]
+      properties:
+        clOrdId: { type: string, minLength: 1, maxLength: 32 }
+        instrumentId: { $ref: '#/components/schemas/InstrumentId' }
+        side: { type: string, enum: [BUY, SELL, SELL_SHORT] }
+        ordType: { type: string, enum: [MARKET, LIMIT, STOP, STOP_LIMIT, FUNARI, MOO, LOO] }
+        quantity: { type: number, format: double, exclusiveMinimum: 0 }
+        price:    { type: number, format: double, exclusiveMinimum: 0 }
+        timeInForce: { type: string, enum: [DAY, IOC, FOK, GTC, GTD, OPG] }
+        expireTime:  { type: string, format: date-time }
+        routingMode: { type: string, enum: [DMA, ALGO_WHEEL, CARE] }
+        algoStrategy:{ type: string, enum: [VWAP, TWAP, POV, IS] }
+        algoParameters:
+          type: object
+          additionalProperties: { type: string }
+        preferredVenue: { type: string, pattern: '^[A-Z0-9]{4}$' }
+    OrderAck:
+      type: object
+      properties:
+        orderId: { type: string, format: uuid }
+        clOrdId: { type: string }
+        submittedAtBiz: { type: string, format: date-time }
+        status: { type: string }
+    Order:
+      type: object
+      properties:
+        orderId: { type: string, format: uuid }
+        clOrdId: { type: string }
+        status:  { type: string }
+        side:    { type: string }
+        instrumentId: { $ref: '#/components/schemas/InstrumentId' }
+        quantity: { type: number, format: double }
+        cumQty:   { type: number, format: double }
+        leavesQty: { type: number, format: double }
+        avgPx:    { type: number, format: double, nullable: true }
+    OrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          properties:
+            executions:
+              type: array
+              items: { $ref: '#/components/schemas/Execution' }
+            events:
+              type: array
+              items: { $ref: '#/components/schemas/AuditEvent' }
+    Execution:
+      type: object
+      properties:
+        executionId: { type: string }
+        venueId: { type: string }
+        quantity: { type: number, format: double }
+        price:   { type: number, format: double }
+        bizTime: { type: string, format: date-time }
+    AuditEvent:
+      type: object
+      properties:
+        seq: { type: integer, format: int64 }
+        action: { type: string }
+        bizTime: { type: string, format: date-time }
+        prevHash: { type: string, description: 'hex-encoded SHA-256' }
+        hash: { type: string, description: 'hex-encoded SHA-256' }
+    ReplaceRequest:
+      type: object
+      properties:
+        newQuantity: { type: number, format: double }
+        newPrice:    { type: number, format: double }
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code: { type: string }
+              detail: { type: string }
+    EntitlementDenied:
+      description: Trader is not entitled to perform this action
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code: { type: string, example: 'ENTITLEMENT_DENIED' }
+              detail: { type: string }
+    PretradeRiskRejected:
+      description: Pre-trade risk gateway rejected the order
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code: { type: string, example: 'PRETRADE_RISK_REJECTED' }
+              reason: { type: string, enum: [FAT_FINGER_NOTIONAL, FAT_FINGER_QUANTITY, MAX_ORDER_SIZE, DAILY_NOTIONAL_LIMIT, THROTTLE_PER_SECOND, THROTTLE_IN_FLIGHT, INSTRUMENT_RESTRICTED, KILL_SWITCH_TRIPPED, UNKNOWN_CLIENT, UNKNOWN_INSTRUMENT] }
+              detail: { type: string }

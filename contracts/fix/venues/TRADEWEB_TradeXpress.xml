@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tradeweb TradeXpress FIX dialect (FIXT.1.1 + FIX 5.0 SP2). Stub.
+  Volle Dialekt-Spec: OnixS-veröffentlicht, derzeit v101.34.
+  Verwendet für RFQ-Flows: QuoteRequest(R) → Quote(S) × N → NewOrderSingle(D) → ExecutionReport(8).
+-->
+<fix major="5" minor="0" servicepack="2">
+  <messages>
+    <message name="QuoteRequest" msgtype="R" msgcat="app">
+      <field name="QuoteReqID" required="Y"/>
+      <field name="Symbol" required="Y"/>
+      <field name="Side" required="Y"/>
+      <field name="OrderQty" required="Y"/>
+    </message>
+    <message name="Quote" msgtype="S" msgcat="app">
+      <field name="QuoteID" required="Y"/>
+      <field name="QuoteReqID" required="N"/>
+      <field name="Symbol" required="Y"/>
+      <field name="BidPx" required="N"/>
+      <field name="OfferPx" required="N"/>
+    </message>
+  </messages>
+  <fields>
+    <field number="131" name="QuoteReqID" type="STRING"/>
+    <field number="117" name="QuoteID" type="STRING"/>
+    <field number="132" name="BidPx" type="PRICE"/>
+    <field number="133" name="OfferPx" type="PRICE"/>
+    <!-- Tradeweb-Custom-Tags ab 9000+ — dokumentiert in OnixS-Spec. -->
+  </fields>
+</fix>

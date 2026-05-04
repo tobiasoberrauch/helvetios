@@ -1,0 +1,46 @@
+{{/*
+  T239 — pre-trade risk gateway. Co-located in the same Pod as inbound-fix-acceptor (shared
+  Aeron MediaDriver via emptyDir mount) per ADR 0010.
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: pretrade-risk-gateway
+    app.kubernetes.io/tier: hot
+spec:
+  replicas: {{ .Values.replicaCount | default 2 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pretrade-risk-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pretrade-risk-gateway
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: aeron
+              mountPath: /dev/shm/aeron
+          env:
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: {{ .Values.kafka.bootstrap | quote }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | default "1000m" }}
+              memory: {{ .Values.resources.requests.memory | default "2Gi" }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | default "4000m" }}
+              memory: {{ .Values.resources.limits.memory | default "8Gi" }}
+      volumes:
+        - name: aeron
+          emptyDir:
+            medium: Memory
+            sizeLimit: 4Gi

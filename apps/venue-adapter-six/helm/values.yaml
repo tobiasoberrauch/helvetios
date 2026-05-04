@@ -1,0 +1,21 @@
+image:
+  repository: ghcr.io/tobiasoberrauch/swisstms-venue-adapter-six
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+service:
+  type: ClusterIP
+  port: 8101
+
+env:
+  SPRING_PROFILES_ACTIVE: dev
+  SIX_SIMULATE_FILLS: "true"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi

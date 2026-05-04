@@ -1,0 +1,24 @@
+{
+  "type": "record",
+  "namespace": "ch.swisstms.events.dropcopy.v1",
+  "name": "DropCopyExecution",
+  "doc": "Independent venue drop-copy stream — authoritative source of truth (Constitution V).",
+  "fields": [
+    {"name": "venueExecutionId", "type": "string"},
+    {"name": "venueOrderId",     "type": "string"},
+    {"name": "senderCompId",     "type": "string"},
+    {"name": "clOrdId",          "type": "string"},
+    {"name": "venueId",          "type": "string", "doc": "MIC"},
+    {"name": "execType",         "type": {"type": "enum", "name": "ExecType",
+        "symbols": ["NEW","PARTIAL_FILL","FILL","CANCELED","REPLACED","REJECTED","TRADE_BUST","EXPIRED"]}},
+    {"name": "instrumentIsin",   "type": "string"},
+    {"name": "instrumentMic",    "type": "string"},
+    {"name": "side",             "type": {"type": "enum", "name": "Side", "symbols": ["BUY","SELL","SELL_SHORT"]}},
+    {"name": "quantity",         "type": ["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}], "default": null},
+    {"name": "price",            "type": ["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}], "default": null},
+    {"name": "cumQty",           "type": ["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}], "default": null},
+    {"name": "leavesQty",        "type": ["null", {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 8}], "default": null},
+    {"name": "bizTimeMicros",    "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "rawMessage",       "type": ["null", "bytes"], "default": null, "doc": "Raw FIX/binary venue message for audit"}
+  ]
+}

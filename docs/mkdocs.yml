@@ -1,0 +1,71 @@
+site_name: Swiss Trading & Market Support Platform
+site_description: Reference mono-repo for a Swiss bank in Basel
+site_url: https://swiss-tms.local/
+repo_url: https://github.com/tobiasoberrauch/swiss-tms-platform
+repo_name: tobiasoberrauch/swiss-tms-platform
+docs_dir: .
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.tabs.link
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: red
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: red
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mermaid2
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - codehilite:
+      guess_lang: false
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid_custom
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Architecture:
+      - Context (Level 1): architecture/context.md
+      - Containers (Level 2): architecture/containers.md
+      - Components (Level 3): architecture/components.md
+  - Decisions (ADRs): decisions/
+  - Runbooks: runbooks/
+  - Algos inventory: algos/inventory.md
+  - Interview:
+      - 30-minute walkthrough: interview/30min-walkthrough.md
+      - Hard questions: interview/hard-questions.md
+  - Glossary: glossary.md

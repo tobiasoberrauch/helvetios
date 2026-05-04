@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "namespace": "ch.swisstms.events.killswitch.v1",
+  "name": "KillSwitchTrip",
+  "doc": "Hot-path kill-switch trip event consumed by EMS, inbound-fix-acceptor, pretrade-risk-gateway.",
+  "fields": [
+    {"name": "scopeType", "type": {"type": "enum", "name": "KillScopeType", "symbols": ["TRADER","STRATEGY","DESK","CLIENT"]}},
+    {"name": "scopeId",   "type": "string"},
+    {"name": "trippedBy", "type": "string", "doc": "userId who pulled the switch"},
+    {"name": "reason",    "type": "string"},
+    {"name": "trippedAtMicros", "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "region",    "type": {"type": "enum", "name": "Region", "symbols": ["ZH","LD4","NY4","TY3"]}}
+  ]
+}

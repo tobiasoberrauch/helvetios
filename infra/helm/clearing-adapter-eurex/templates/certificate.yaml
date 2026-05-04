@@ -1,0 +1,52 @@
+{{/*
+  T124 — Eurex Clearing AMQP client certificate, issued by an OpenBao-backed cert-manager Issuer.
+
+  Constitution Principle VI — every issuance / rotation event is captured by the audit-chain:
+  CertRotationAuditor watches the JKS truststore mounted from this Secret and emits
+  `clearing.eurex.cert.expiry.warning` events when notAfter < 30d.
+*/}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "clearing-adapter-eurex.fullname" . }}-amqp-client
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: clearing-adapter-eurex
+    app.kubernetes.io/component: amqp-client-tls
+    swisstms.ch/regulation: "EMIR-RTS-22"
+spec:
+  # Eurex Member-Section CA expects a 1-year cert; cert-manager auto-renews at 2/3 of duration.
+  duration: 8760h        # 365d
+  renewBefore: 720h      # 30d — matches the AlertManager 30-day rule (eurex-cert-expiry-30d.yml)
+  secretName: {{ include "clearing-adapter-eurex.fullname" . }}-amqp-client-tls
+  privateKey:
+    algorithm: RSA
+    size: 4096
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - key encipherment
+    - client auth
+  subject:
+    organizations:
+      - "Swiss Trading & Market Support Platform"
+      - "{{ .Values.eurex.member.shortName }}"
+    organizationalUnits:
+      - "Eurex Member Section"
+    countries:
+      - "CH"
+  commonName: {{ printf "%s.eurex.swisstms.ch" .Values.eurex.member.shortName | quote }}
+  dnsNames:
+    - {{ printf "%s.eurex.swisstms.ch" .Values.eurex.member.shortName | quote }}
+    - {{ printf "%s-rt.eurex.swisstms.ch" .Values.eurex.member.shortName | quote }}
+  issuerRef:
+    name: openbao-pki-eurex-clearing
+    kind: ClusterIssuer
+    group: cert-manager.io
+  # JKS keystore + truststore are emitted into the Secret so JmsTemplate can mount them directly.
+  keystores:
+    jks:
+      create: true
+      passwordSecretRef:
+        name: {{ include "clearing-adapter-eurex.fullname" . }}-keystore-password
+        key: password

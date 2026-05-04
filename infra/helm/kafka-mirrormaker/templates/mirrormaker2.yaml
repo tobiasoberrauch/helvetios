@@ -1,0 +1,47 @@
+{{/*
+  T267 — One Strimzi KafkaMirrorMaker2 per region pair.
+
+  Topology is fully connected: every region pulls from the other three. Replication factor 3 on
+  every receiving cluster keeps the mirrored topics durable inside the recipient region.
+
+  Strimzi handles offset translation via emit-checkpoints; consumer groups carry the
+  ``swisstms.*`` prefix and survive cross-region failover.
+*/}}
+{{- range $sourceKey, $source := .Values.clusters }}
+{{- range $targetKey, $target := $.Values.clusters }}
+{{- if ne $sourceKey $targetKey }}
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaMirrorMaker2
+metadata:
+  name: mm2-{{ $sourceKey }}-to-{{ $targetKey }}
+  namespace: kafka-mirror
+spec:
+  version: 3.7.0
+  replicas: 2
+  connectCluster: "{{ $targetKey }}"
+  clusters:
+    - alias: "{{ $sourceKey }}"
+      bootstrapServers: {{ $source.bootstrapServers }}
+    - alias: "{{ $targetKey }}"
+      bootstrapServers: {{ $target.bootstrapServers }}
+  mirrors:
+    - sourceCluster: "{{ $sourceKey }}"
+      targetCluster: "{{ $targetKey }}"
+      topicsPattern: "{{ join "," $.Values.topicsToReplicate }}"
+      groupsPattern: "{{ index $.Values.groupsToReplicate 0 }}"
+      sourceConnector:
+        config:
+          replication.factor: {{ $.Values.replicationFactor }}
+          offset-syncs.topic.replication.factor: {{ $.Values.replicationFactor }}
+          sync.topic.acls.enabled: "{{ $.Values.syncTopicAcls }}"
+          replication.policy.separator: "."
+          replication.policy.class: "org.apache.kafka.connect.mirror.IdentityReplicationPolicy"
+      checkpointConnector:
+        config:
+          checkpoints.topic.replication.factor: {{ $.Values.replicationFactor }}
+          sync.group.offsets.enabled: "{{ $.Values.syncGroupOffsets }}"
+          emit.checkpoints.enabled: "{{ $.Values.emitCheckpointsEnabled }}"
+{{- end }}
+{{- end }}
+{{- end }}

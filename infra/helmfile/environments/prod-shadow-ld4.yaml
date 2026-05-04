@@ -1,0 +1,14 @@
+# Production-shadow per region (ld4). WORM via S3 Object Lock,
+# Aurora Global DB für Postgres, Kafka MirrorMaker 2 cross-region.
+postgresql:
+  primary:
+    persistence:
+      enabled: true
+      size: 1Ti
+      storageClass: managed-premium
+
+global:
+  region: ld4
+  worm:
+    enabled: true
+    bucket: swisstms-regulatory-ld4

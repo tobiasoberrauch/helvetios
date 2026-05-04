@@ -1,0 +1,7 @@
+spring: { application: { name: venue-adapter-refinitiv } }
+server: { port: 8104 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  refinitiv:
+    app-id: ${REFINITIV_APP_ID:swisstms-zh-default}
+    rdp-endpoint: ${REFINITIV_RDP_ENDPOINT:https://api.refinitiv.com}

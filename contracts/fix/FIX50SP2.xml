@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Stub FIX 5.0 SP2 dictionary. Wird in `make scaffold` durch das volle
+  Dictionary aus `org.quickfixj:quickfixj-messages-fix50sp2:2.3.2` ersetzt.
+
+  Hinweis: FIX 5.0 SP2 trennt Application-Layer von Transport (FIXT 1.1).
+  Diese Stub-Variante deckt nur die für Phase 7 (US5 — Trax APA) und
+  Phase 13 (Sell-side inbound) benötigten App-Messages ab:
+    - 35=AE TradeCaptureReport
+    - 35=AR TradeCaptureReportAck
+    - 35=D, 35=8, 35=F, 35=G, 35=9, 35=j (analog zu 4.4)
+-->
+<fix major="5" minor="0" servicepack="2">
+  <header>
+    <field name="ApplVerID" required="N"/>
+  </header>
+  <messages>
+    <message name="TradeCaptureReport" msgtype="AE" msgcat="app">
+      <field name="TradeReportID" required="Y"/>
+      <field name="TradeReportTransType" required="Y"/>
+      <field name="TradeReportType" required="Y"/>
+      <field name="ExecID" required="N"/>
+      <field name="OrderID" required="N"/>
+      <field name="Symbol" required="N"/>
+      <field name="SecurityID" required="N"/>
+      <field name="SecurityIDSource" required="N"/>
+      <field name="LastQty" required="Y"/>
+      <field name="LastPx" required="Y"/>
+      <field name="TradeDate" required="Y"/>
+      <field name="TransactTime" required="Y"/>
+      <field name="MarketID" required="N"/>
+    </message>
+    <message name="TradeCaptureReportAck" msgtype="AR" msgcat="app">
+      <field name="TradeReportID" required="Y"/>
+      <field name="TradeReportStatus" required="Y"/>
+      <field name="TradeReportRejectReason" required="N"/>
+      <field name="Text" required="N"/>
+    </message>
+  </messages>
+  <fields>
+    <field number="487" name="TradeReportTransType" type="INT"/>
+    <field number="571" name="TradeReportID" type="STRING"/>
+    <field number="828" name="TrdType" type="INT"/>
+    <field number="856" name="TradeReportType" type="INT"/>
+    <field number="939" name="TrdRptStatus" type="INT"/>
+    <field number="940" name="TradeReportStatus" type="INT"/>
+    <field number="751" name="TradeReportRejectReason" type="INT"/>
+    <field number="1300" name="MarketID" type="EXCHANGE"/>
+    <field number="22683" name="TraxRoutingHint" type="INT"/>
+  </fields>
+</fix>

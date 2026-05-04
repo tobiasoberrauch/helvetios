@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: entitlements-service
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure: { include: health, info, metrics, prometheus }
+
+swisstms:
+  region: ${SWISSTMS_REGION:ZH}
+  topics:
+    killswitch: hot.killswitch.trip.v1
+    limit-update: warm.entitlements.limit-update.v1
+
+logging:
+  level:
+    root: INFO
+    ch.swisstms: DEBUG

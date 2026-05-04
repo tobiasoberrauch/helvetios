@@ -1,0 +1,25 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: swisstmsnetworkpolicyrequired
+spec:
+  crd:
+    spec:
+      names:
+        kind: SwissTmsNetworkPolicyRequired
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package swisstms.networkpolicy
+
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Pod"
+          ns := input.review.object.metadata.namespace
+          not networkpolicy_exists(ns)
+          msg := sprintf("Pod %q has no NetworkPolicy in namespace %q (Constitution Principle II — every workload scoped)", [input.review.object.metadata.name, ns])
+        }
+
+        networkpolicy_exists(ns) {
+          policy := data.inventory.namespace[ns]["networking.k8s.io/v1"].NetworkPolicy[_]
+          policy.spec.podSelector
+        }

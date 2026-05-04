@@ -1,0 +1,65 @@
+{{/*
+  T260 — EMS as a 5-node StatefulSet for Aeron Cluster Raft consensus (quorum 3).
+*/}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: ems-service
+    app.kubernetes.io/tier: hot
+spec:
+  serviceName: {{ .Release.Name }}
+  replicas: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ems-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ems-service
+    spec:
+      tolerations:
+        - key: "swisstms.ch/tier"
+          value: "hot"
+          effect: "NoSchedule"
+      containers:
+        - name: app
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          env:
+            - name: SWISSTMS_EMS_CLUSTER_ENABLED
+              value: "true"
+            - name: SWISSTMS_EMS_CLUSTER_NODEID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['apps.kubernetes.io/pod-index']
+          volumeMounts:
+            - name: archive
+              mountPath: /var/swisstms/aeron/archive
+            - name: journal
+              mountPath: /var/swisstms/journal/ems
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | default "2000m" }}
+              memory: {{ .Values.resources.requests.memory | default "8Gi" }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | default "8000m" }}
+              memory: {{ .Values.resources.limits.memory | default "32Gi" }}
+  volumeClaimTemplates:
+    - metadata:
+        name: archive
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: nvme-fast
+    - metadata:
+        name: journal
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 200Gi
+        storageClassName: nvme-fast

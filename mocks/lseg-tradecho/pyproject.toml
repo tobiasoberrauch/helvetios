@@ -1,0 +1,16 @@
+[project]
+name = "lseg-tradecho-mock"
+version = "0.1.0"
+description = "T144 — LSEG TRADEcho ARM mock for RTS-22 submissions"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["server.py"]

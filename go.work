@@ -1,0 +1,8 @@
+// Swiss Trading & Market Support Platform — Go workspace.
+//
+// Per-tool go.mod files are added incrementally. Phase 11 (US9) adds
+// `tools/ptp-audit-report/`; later phases may add other tooling.
+
+go 1.22
+
+use ./tools/ptp-audit-report

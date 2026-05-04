@@ -1,0 +1,23 @@
+# Treat Gradle wrapper jar as binary (when bundled).
+gradle/wrapper/gradle-wrapper.jar binary
+
+# Treat all binary asset types as binary explicitly.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.gz   binary
+*.tgz  binary
+*.jks  binary
+*.p12  binary
+
+# Force LF on shell scripts.
+*.sh   text eol=lf
+gradlew text eol=lf
+
+# Force CRLF on Windows scripts (developer ergonomics).
+*.bat  text eol=crlf
+gradlew.bat text eol=crlf

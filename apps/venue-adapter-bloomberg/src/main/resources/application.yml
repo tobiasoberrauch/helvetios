@@ -1,0 +1,8 @@
+spring: { application: { name: venue-adapter-bloomberg } }
+server: { port: 8103 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  bloomberg:
+    flavour: ${BLOOMBERG_FLAVOUR:DESKTOP}  # DESKTOP | SAPI | BPIPE
+    desktop-host: ${BLOOMBERG_DESKTOP_HOST:localhost}
+    desktop-port: ${BLOOMBERG_DESKTOP_PORT:8194}

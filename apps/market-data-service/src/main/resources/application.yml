@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: market-data-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+
+server:
+  port: 9200
+
+management:
+  endpoints:
+    web:
+      exposure: { include: health, info, metrics, prometheus }
+
+swisstms:
+  questdb:
+    host: ${QUESTDB_HOST:localhost}
+    port: ${QUESTDB_PORT:8812}
+  clickhouse:
+    url: ${CLICKHOUSE_URL:jdbc:ch://localhost:8123/default}
+  aeron:
+    md-equity-channel: aeron:udp?endpoint=224.10.0.1:40456
+    md-derivative-channel: aeron:udp?endpoint=224.10.0.2:40457
+    md-fx-channel: aeron:udp?endpoint=224.10.0.3:40458
+
+logging:
+  level:
+    root: INFO
+    ch.swisstms: DEBUG

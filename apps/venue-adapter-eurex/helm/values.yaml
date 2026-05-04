@@ -1,0 +1,4 @@
+image: { repository: ghcr.io/tobiasoberrauch/swisstms-venue-adapter-eurex, tag: 0.1.0 }
+service: { port: 8102 }
+nodeSelector: { swisstms.io/hot-path: "true" }
+resources: { requests: { cpu: 1000m, memory: 2Gi }, limits: { cpu: 4000m, memory: 4Gi } }

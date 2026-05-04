@@ -1,0 +1,30 @@
+spring: { application: { name: venue-adapter-bidfx } }
+server: { port: 8107 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  bidfx:
+    pop: ${BIDFX_POP:LD4}
+    username: ${BIDFX_USERNAME:swisstms}
+    product-serial: ${BIDFX_PRODUCT_SERIAL:dummy}
+    # T198 — POPs by region. The active POP is selected via env var or by Helm per-region overlay.
+    pops:
+      LD4:
+        host: api.ld4.bidfx.com
+        port: 9990
+        product: pixie
+        latencyTarget: hot
+      NY4:
+        host: api.ny4.bidfx.com
+        port: 9990
+        product: pixie
+        latencyTarget: hot
+      TY3:
+        host: api.ty3.bidfx.com
+        port: 9990
+        product: pixie
+        latencyTarget: hot
+      ZH:
+        host: api.eu.bidfx.com
+        port: 9990
+        product: puffin
+        latencyTarget: warm

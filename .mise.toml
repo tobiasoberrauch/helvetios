@@ -1,0 +1,47 @@
+# Swiss Trading & Market Support Platform — Tool-Version-Pinning via mise.
+#
+# https://mise.jdx.dev — managed development environments.
+#
+# Setup für neue Contributoren:
+#   curl https://mise.run | sh           # install mise
+#   mise trust                            # vertraue dieser .mise.toml
+#   mise install                          # installiert alle Tools unten
+#   eval "$(mise activate zsh)"          # aktiviert mise in der Shell
+#                                          (oder bash/fish je nach Shell)
+#
+# Danach: jeder `task ...`-Aufruf in diesem Repo nutzt automatisch die
+# unten gepinnten Tool-Versionen — egal welche System-Versionen installiert sind.
+
+[tools]
+java   = "temurin-21.0.4+7.0.LTS"
+python = "3.12"
+node   = "20.18.0"
+go     = "1.22.8"
+rust   = "1.78.0"
+
+# CLI-Werkzeuge — werden über mise direkt aus den jeweiligen Releases bezogen.
+"go:github.com/go-task/task/v3/cmd/task" = "latest"
+gradle = "8.10"
+uv     = "0.4.26"
+
+# Optional — nur falls du lokal volles tilt up nutzen willst:
+# kubectl    = "1.30"
+# kind       = "0.24"
+# helm       = "3.15"
+# helmfile   = "0.166"
+# tilt       = "0.33"
+
+[env]
+# Zentrale Env-Variablen für alle Sprachen
+JAVA_TOOL_OPTIONS = "-Dfile.encoding=UTF-8 -Duser.timezone=UTC"
+GRADLE_OPTS       = "-Xmx4g -Dfile.encoding=UTF-8"
+PYTHONDONTWRITEBYTECODE = "1"
+PYTHONUNBUFFERED        = "1"
+# Dev-Defaults für SwissTMS
+SWISSTMS_REGION   = "ZH"
+SPRING_PROFILES_ACTIVE = "dev"
+
+[settings]
+# Auto-trust ist eine bewusste Sicherheits-Entscheidung pro Repo — wir
+# verlassen uns auf den `mise trust`-Schritt im Onboarding-Workflow.
+experimental = true

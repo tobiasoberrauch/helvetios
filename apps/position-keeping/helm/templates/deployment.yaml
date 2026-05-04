@@ -1,0 +1,42 @@
+{{/*
+  T305 — position-keeping. Single replica per region — Postgres handles the durable state, the
+  pod is a stateless Kafka consumer.
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: position-keeping
+    app.kubernetes.io/tier: cold
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # idempotency is keyed on executionId; no need for rolling here.
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: position-keeping
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: position-keeping
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: {{ .Values.kafka.bootstrap | quote }}
+            - name: SPRING_DATASOURCE_URL
+              value: {{ .Values.postgres.jdbcUrl | quote }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | default "200m" }}
+              memory: {{ .Values.resources.requests.memory | default "512Mi" }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | default "1000m" }}
+              memory: {{ .Values.resources.limits.memory | default "1Gi" }}

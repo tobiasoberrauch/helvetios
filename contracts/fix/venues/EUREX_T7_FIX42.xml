@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Eurex T7 FIX-Gateway (Fallback zum primären T7 ETI binary). Stub.
+  Volle Spec aus Eurex Member Section.
+-->
+<fix major="4" minor="2" servicepack="0">
+  <fields>
+    <!-- Eurex-spezifische ExecutingTrader-ID (FIX 4.2 nutzt 20036 für
+         PartyIDExecutingTrader; in 4.4 als Repeating-Group 453+). -->
+    <field number="20036" name="PartyIDExecutingTrader" type="STRING"/>
+  </fields>
+</fix>

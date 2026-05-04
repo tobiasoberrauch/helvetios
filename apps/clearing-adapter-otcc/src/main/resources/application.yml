@@ -1,0 +1,3 @@
+spring: { application: { name: clearing-adapter-otcc } }
+server: { port: 8089 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }

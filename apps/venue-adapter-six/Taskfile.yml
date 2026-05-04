@@ -1,0 +1,31 @@
+version: '3'
+
+vars:
+  PROJECT: ":apps:venue-adapter-six"
+  PORT: 8101
+
+tasks:
+  build:
+    cmds:
+      - ./gradlew {{.PROJECT}}:build
+
+  test:
+    desc: "Conformance-Tests (NewOrderSingle → ExecutionReport NEW/PARTIAL/FILL + Cancel)"
+    cmds:
+      - ./gradlew {{.PROJECT}}:test
+
+  run:
+    desc: "SIX-Adapter standalone starten (in-process Mock aktiviert)"
+    env:
+      SIX_SIMULATE_FILLS: "true"
+    cmds:
+      - ./gradlew {{.PROJECT}}:bootRun
+
+  image:
+    cmds:
+      - ./gradlew {{.PROJECT}}:bootBuildImage --imageName=ghcr.io/tobiasoberrauch/swisstms-venue-adapter-six:dev
+
+  health:
+    desc: "Health-Snapshot des SIX-Adapters"
+    cmds:
+      - curl -s http://localhost:{{.PORT}}/actuator/health | jq

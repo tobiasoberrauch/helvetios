@@ -1,0 +1,22 @@
+{
+  "type": "record",
+  "namespace": "ch.swisstms.events.audit.v1",
+  "name": "AuditEvent",
+  "doc": "Hash-chained audit event for any state-changing command (Constitution VI — NON-NEGOTIABLE).",
+  "fields": [
+    {"name": "auditEventId", "type": {"type": "string", "logicalType": "uuid"}},
+    {"name": "seq",          "type": "long", "doc": "Global monotonic per region"},
+    {"name": "region",       "type": {"type": "enum", "name": "Region", "symbols": ["ZH","LD4","NY4","TY3"]}},
+    {"name": "actorType",    "type": {"type": "enum", "name": "ActorType", "symbols": ["USER","SERVICE","EXTERNAL"]}},
+    {"name": "actorId",      "type": "string"},
+    {"name": "action",       "type": "string", "doc": "e.g. order.submit | killswitch.trip | entitlement.revoke"},
+    {"name": "targetType",   "type": "string"},
+    {"name": "targetId",     "type": "string"},
+    {"name": "payload",      "type": "bytes", "doc": "Canonical JSON of the command/change"},
+    {"name": "bizTimeMicros",  "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "procTimeMicros", "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "prevHash",     "type": "bytes", "doc": "SHA-256 of previous AuditEvent in same region"},
+    {"name": "hash",         "type": "bytes", "doc": "SHA-256(prevHash || canonical(payload))"},
+    {"name": "traceparent",  "type": ["null", "string"], "default": null}
+  ]
+}

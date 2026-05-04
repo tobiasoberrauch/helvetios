@@ -1,0 +1,10 @@
+spring: { application: { name: inbound-fix-acceptor } }
+server: { port: 8091 }
+management: { endpoints: { web: { exposure: { include: health,info,metrics,prometheus } } } }
+swisstms:
+  inbound:
+    acceptor-port: ${INBOUND_ACCEPTOR_PORT:9001}
+    clients-config-dir: classpath:clients
+    aeron:
+      out-channel: aeron:ipc?endpoint=acceptor-to-risk
+      in-channel:  aeron:ipc?endpoint=ems-to-acceptor

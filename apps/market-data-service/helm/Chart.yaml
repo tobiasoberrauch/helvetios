@@ -1,0 +1,6 @@
+apiVersion: v2
+name: market-data-service
+version: 0.1.0
+appVersion: "0.1.0"
+description: Market-data normaliser + Aeron multicast fan-out
+type: application

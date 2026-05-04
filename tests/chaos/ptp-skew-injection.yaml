@@ -1,0 +1,11 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: TimeChaos
+metadata:
+  name: ptp-skew-injection
+spec:
+  mode: one
+  selector:
+    namespaces: [tms-dev]
+    labelSelectors: { swisstms.io/hot-path: "true" }
+  timeOffset: "200us"   # 200µs skew — exceeds RTS-25 budget of 100µs
+  duration: "120s"

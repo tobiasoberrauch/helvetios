@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  MarketAxess Trax APA dialect (FIXT.1.1 + FIX 5.0 SP2 + EP228 +
+  Trax-Custom-Tags). Stub.
+
+  Tägliche Session-Reset-Window 23:00–23:05 GMT. CSV-SFTP-Fallback bei
+  >3GB (Error GBX-010). Vollständige Spec: MarketAxess Trax-Dokumentation.
+-->
+<fix major="5" minor="0" servicepack="2">
+  <fields>
+    <field number="22683" name="TraxRoutingHint" type="INT"/>
+    <!-- Weitere Trax-spezifische Tags (EP228) werden bei Schema-Vendoring
+         in Phase 7 (US5) ergänzt. -->
+  </fields>
+</fix>

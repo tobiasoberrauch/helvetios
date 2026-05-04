@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: venue-adapter-six
+
+server:
+  port: 8101
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+
+swisstms:
+  six:
+    simulate-fills: ${SIX_SIMULATE_FILLS:true}
+    quickfix-cfg: classpath:quickfix/SIX_STI_initiator.cfg
+
+logging:
+  level:
+    root: INFO
+    ch.swisstms: DEBUG
